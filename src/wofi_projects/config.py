@@ -11,6 +11,7 @@ class Config:
         "show_icons": True,
         "show_hidden": False,
         "show_files": True,
+        "ui_provider": "wofi",
         "wofi": {
             "config": "/home/sean/.config/wofi/projects/config",
             "stylesheet": "/home/sean/.config/wofi/projects/style.css",
@@ -29,6 +30,9 @@ class Config:
             kwargs.get("show_hidden") or self.default["show_hidden"]  # type: ignore
         )
         self.show_files: bool = kwargs.get("show_files") or self.default["show_files"]  # type: ignore
+        self.ui_provider: str = (
+            kwargs.get("ui_provider") or self.default["ui_provider"]
+        )  # type
         self.wofi: Dict[str, str] = kwargs.get("wofi") or self.default["wofi"]  # type: ignore
 
 
