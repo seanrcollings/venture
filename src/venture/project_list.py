@@ -36,6 +36,7 @@ class Project:
 
     def __init__(self, path: str, prefix: Optional[str]):
         self.path: Path = Path(path).expanduser().resolve()
+        self.fullpath = str(self.path)
         self.icon: Optional[str] = (
             self.get_icon("directory")
             if self.path.is_dir()

@@ -1,7 +1,9 @@
 from typing import Dict
+import os
 import yaml
 
 from .types import DirectorySchema
+from . import util
 
 
 class Config:
@@ -23,7 +25,7 @@ class Config:
         self.directories: DirectorySchema = (
             kwargs.get("directories") or self.default["directories"]
         )
-        self.exec: str = kwargs.get("show_icons") or self.default["exec"]
+        self.exec: str = kwargs.get("exec") or self.default["exec"]
         self.show_icons: bool = kwargs.get("show_icons") or self.default["show_icons"]
         self.show_hidden: bool = (
             kwargs.get("show_hidden") or self.default["show_hidden"]
@@ -37,4 +39,11 @@ class Config:
         return yaml.dump(cls.default, Dumper=yaml.Dumper)
 
 
-config = Config()
+config_path = util.resolve("~/.config/venture.yaml")
+if os.path.isfile(config_path):
+    file = open(config_path)
+    contents = file.read()
+    file.close()
+    config = Config(**yaml.load(contents, Loader=yaml.Loader))
+else:
+    config = Config()

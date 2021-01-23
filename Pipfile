@@ -11,8 +11,7 @@ mypy = "*"
 
 [packages]
 pyyaml = "*"
-wofi-projects = {editable = true, path = "."}
-
+venture = {editable = true, path = "."}
 
 [requires]
 python_version = "3.9"

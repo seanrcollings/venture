@@ -13,7 +13,7 @@ def main():
     if choice == "":
         return
 
-    path = projects[choice]
+    project = projects[choice]
     command = shlex.split(config.exec)
-    command.append(path)
+    command.append(project.fullpath)
     subprocess.run(command, check=True)
