@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="wofi-projects",
+    name="venture",
     version="1.0.01",
     license="MIT",
     author="Sean Collings",
@@ -23,5 +23,6 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires=">=3.9",
-    entry_points={"console_scripts": ["wofi-projects = wofi_projects.__main__:main"]},
+    entry_points={"console_scripts": ["venture = venture.__main__:main"]},
+    install_requires=["pyyaml"],
 )

@@ -1,7 +1,5 @@
-from typing import cast, Dict
-
-
 from .ui_provider import UIProvider
+from ..util import resolve
 
 
 class Wofi(UIProvider):
@@ -9,13 +7,12 @@ class Wofi(UIProvider):
 
     def get_commandline_args(self, config):
         args = ["--dmenu"]
-        wofi_conf = cast(Dict[str, str], config.wofi)
-        if conf := wofi_conf.get("config"):
+        if conf := config.wofi.get("config"):
             args.append("--conf")
-            args.append(conf)
-        if style := wofi_conf.get("stylesheet"):
+            args.append(resolve(conf))
+        if style := config.wofi.get("stylesheet"):
             args.append("--style")
-            args.append(style)
+            args.append(resolve(style))
 
         return args
 

@@ -5,6 +5,7 @@ import os
 from .types import DirectorySchema
 from .config import config
 from .icons import icon
+from . import util
 
 EXCLUDED_DIRS = [
     "node_modules",
@@ -87,20 +88,19 @@ class ProjectList:
         self.handle_directories()
 
     def handle_directories(self):
-
         for directory in self.dirs:
             if directory in EXCLUDED_DIRS:
                 continue
 
-            if isinstance(directory, str):  # handle a single directory
-                self.projects |= {  # type: ignore
+            if isinstance(directory, str):
+                self.projects |= {
                     str(project): project for project in self.get_projects(directory)
                 }
             elif isinstance(directory, dict):
                 self.handle_nested_dirs(directory)
 
     def handle_nested_dirs(self, dir_data: dict):
-        # handle a base directory and it's sub-dirs
+        """handle a base directory and it's sub-dirs"""
         base = cast(str, dir_data["base"])
         subs = cast(List[str], dir_data["subs"])
         directories = [f"{base}/{sub.lstrip('/')}" for sub in subs]
@@ -115,7 +115,7 @@ class ProjectList:
         """Gets all the projects / files from the specified directory
         appends icons to each path if `config['show_icons']` is `True`
         """
-
+        directory = util.resolve(directory)
         prefix = prefix or directory
 
         for obj in os.scandir(directory):

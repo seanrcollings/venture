@@ -14,7 +14,6 @@ def main():
         return
 
     path = projects[choice]
-    print(repr(path))
-    # command = shlex.split(config.exec)
-    # command.append(path)
-    # subprocess.run(command, check=True)
+    command = shlex.split(config.exec)
+    command.append(path)
+    subprocess.run(command, check=True)
