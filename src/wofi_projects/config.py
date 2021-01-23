@@ -5,7 +5,12 @@ from .types import DirectorySchema
 class Config:
     default = {
         "directories": [
-            "/home/sean/sourcecode/rust",
+            {
+                "base": "/home/sean/sourcecode",
+                "subs": [
+                    "rust",
+                ],
+            },
             "/home/sean/sourcecode/crystal",
         ],
         "show_icons": True,

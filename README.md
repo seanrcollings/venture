@@ -3,6 +3,8 @@
 # TODO
 - `wofi-projects` is a lame name
   - Plus, I might write multiple UI frontends (curses, rofi), so it wouldn't be accurate
+  - projectme
+  - projecty
 - How to handle name collisions?
   - Just let them happen (maybe log them somewhere?)
   - Force everything to be namespaced to some extent

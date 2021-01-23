@@ -12,37 +12,104 @@ EXCLUDED_DIRS = [
 ]
 
 
+class Project:
+    """OO Representation of a project directory
+
+    `self.specificity` will change the amount of the full path shown.
+
+    path: `/home/sean/sourcecode/rust`
+    - specificity 1 => rust
+    - specificity 2 => sourcecode/rust
+    - specificity 3 => sean/sourcecode/rust
+    ...
+
+    If a prefix path is provided, the initial specificity is
+    is equal to the number of path components in the path and not in
+    the prefix
+
+    path: `/home/sean/sourcecode/rust`
+    - prefix: `/home/sean/sourcecode` => rust
+    - prefix: `/home/sean` => sourcecode/rust
+    ...
+    """
+
+    def __init__(self, path: str, prefix: Optional[str]):
+        self.path: Path = Path(path).expanduser().resolve()
+        self.icon: Optional[str] = (
+            self.get_icon("directory")
+            if self.path.is_dir()
+            else self.get_icon(self.path.suffix)
+        )
+        self.specificity = 1
+
+        if prefix:
+            # breakpoint()
+            self.specificity = len(
+                str(self.path).removeprefix(prefix).lstrip("/").split("/")
+            )
+
+    @property
+    def name(self):
+        parts = self.path.parts
+        start = len(parts) - (self.specificity)
+        start = 0 if start < 0 else start
+        name = "/".join(parts[start:])
+
+        # The first element of self.path.parts is a / instead
+        # of an empty string like in my implementation, which may cause some
+        # issues if we end up showing the entire string, so we just set it to ""
+        if start == 0:
+            name = name[1:]
+
+        return name
+
+    def __str__(self):
+        return f"{self.icon + '  ' if self.icon else ''}{self.name}"
+
+    def __repr__(self):
+        return f"<Project {self.path}>"
+
+    @staticmethod
+    def get_icon(filetype: str) -> Optional[str]:
+        """Returns the icon associated with a specific file type,
+        returns none if config.show_icons is set to False"""
+        if not config.show_icons:
+            return None
+
+        return icon(filetype) or icon("default")
+
+
 class ProjectList:
     def __init__(self, directories: DirectorySchema):
         self.dirs = directories
-        self.projects = self.handle_directories()
+        self.projects: Dict[str, Project] = {}
+
+        self.handle_directories()
 
     def handle_directories(self):
-        # contains mappings between display name: full path
-        projects: Dict[str, str] = {}
 
         for directory in self.dirs:
             if directory in EXCLUDED_DIRS:
                 continue
 
             if isinstance(directory, str):  # handle a single directory
-                projects |= {  # type: ignore
-                    f"{icon + '  ' if icon else ''}{name.removeprefix(directory + '/')}": name
-                    for icon, name in self.get_projects(directory)
+                self.projects |= {  # type: ignore
+                    str(project): project for project in self.get_projects(directory)
                 }
             elif isinstance(directory, dict):
-                # handle a base directory and it's sub-dirs
-                base = cast(str, directory["base"])
-                subs = cast(List[str], directory["subs"])
-                directories = [f"{base}/{sub.lstrip('/')}" for sub in subs]
-                directories.append(base)
-                for directory in directories:
-                    projects |= {  # type: ignore
-                        f"{icon + '  ' if icon else ''}{name.removeprefix(base + '/')}": directory
-                        for icon, name in self.get_projects(directory, base)
-                    }
+                self.handle_nested_dirs(directory)
 
-        return projects
+    def handle_nested_dirs(self, dir_data: dict):
+        # handle a base directory and it's sub-dirs
+        base = cast(str, dir_data["base"])
+        subs = cast(List[str], dir_data["subs"])
+        directories = [f"{base}/{sub.lstrip('/')}" for sub in subs]
+        directories.append(base)
+
+        for directory in directories:
+            self.projects |= {  # type: ignore
+                str(project): project for project in self.get_projects(directory, base)
+            }
 
     def get_projects(self, directory: str, prefix: Optional[str] = None):
         """Gets all the projects / files from the specified directory
@@ -58,15 +125,9 @@ class ProjectList:
             ):
                 continue
 
-            if path.is_dir():
-                yield self.get_icon("directory"), str(path)
-            elif path.is_file():
-                yield self.get_icon(path.suffix.lstrip(".")), str(path)
+            project = Project(str(path), prefix)
+            while str(project) in self.projects:
+                # Handle this going on for too long?
+                project.specificity += 1
 
-    def get_icon(self, filetype: str) -> Optional[str]:
-        """Returns the icon associated with a specific file type,
-        returns none if config.show_icons is set to False"""
-        if not config.show_icons:
-            return None
-
-        return icon(filetype) or icon("default")
+            yield project
