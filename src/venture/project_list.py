@@ -78,7 +78,7 @@ class Project:
         if not config.show_icons:
             return None
 
-        return icon(filetype) or icon("default")
+        return icon(filetype)
 
 
 class ProjectList:

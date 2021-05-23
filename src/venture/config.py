@@ -10,29 +10,28 @@ class Config:
     default = {
         "directories": ["~"],
         "exec": "code -r",
-        "ui_provider": "wofi",
+        "ui_provider": "rofi",
         "show_icons": True,
         "show_hidden": False,
         "show_files": True,
-        "wofi": {
-            "config": "~/.config/wofi/projects/config",
-            "stylesheet": "~/.config/wofi/projects/style.css",
-        },
+        "wofi": {},
+        "rofi": {},
     }
 
     def __init__(self, **kwargs):
 
-        self.directories: DirectorySchema = (
-            kwargs.get("directories") or self.default["directories"]
+        self.directories: DirectorySchema = kwargs.get(
+            "directories", self.default["directories"]
         )
-        self.exec: str = kwargs.get("exec") or self.default["exec"]
-        self.show_icons: bool = kwargs.get("show_icons") or self.default["show_icons"]
+        self.exec: str = kwargs.get("exec") or self.default["exec"]  # type: ignore
+        self.show_icons: bool = kwargs.get("show_icons") or self.default["show_icons"]  # type: ignore
         self.show_hidden: bool = (
-            kwargs.get("show_hidden") or self.default["show_hidden"]
+            kwargs.get("show_hidden") or self.default["show_hidden"]  # type: ignore
         )
-        self.show_files: bool = kwargs.get("show_files") or self.default["show_files"]
-        self.ui_provider: str = kwargs.get("ui_provider") or self.default["ui_provider"]
-        self.wofi: Dict[str, str] = kwargs.get("wofi") or self.default["wofi"]
+        self.show_files: bool = kwargs.get("show_files") or self.default["show_files"]  # type: ignore
+        self.ui_provider: str = kwargs.get("ui_provider") or self.default["ui_provider"]  # type: ignore
+        self.wofi: Dict[str, str] = kwargs.get("wofi") or self.default["wofi"]  # type: ignore
+        self.rofi: Dict[str, str] = kwargs.get("rofi") or self.default["rofi"]  # type: ignore
 
     @classmethod
     def dump_default(cls):

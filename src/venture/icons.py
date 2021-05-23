@@ -4,8 +4,8 @@ from typing import Dict, Optional
 
 __icons: Dict[str, str] = {
     "directory": "",
-    "default": "",
-    "py": "",
+    "default": "",
+    "py": "\uf81f",
     "rb": "",
     "cr": "",
     "rs": "",
@@ -15,6 +15,6 @@ __icons: Dict[str, str] = {
 
 def icon(name: str) -> Optional[str]:
     """Get an icon associated with a filename,
-    returns None if it doesn't exist"""
+    returns the default if it doesn't exist"""
     name = name.lstrip(".")
-    return __icons.get(name)
+    return __icons.get(name) or __icons.get("default")
