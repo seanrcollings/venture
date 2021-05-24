@@ -1,4 +1,5 @@
-from typing import Dict
+from typing import Any
+import types
 import os
 import yaml
 
@@ -7,39 +8,48 @@ from . import util
 
 
 class Config:
-    default = {
-        "directories": ["~"],
-        "exec": "code -r",
-        "ui_provider": "rofi",
-        "show_icons": True,
-        "show_hidden": False,
-        "show_files": True,
-        "wofi": {},
-        "rofi": {},
-    }
+    directories: DirectorySchema = ["~"]
+    exec: str = "code -r"
+    ui_provider: str = "rofi"
+    show_icons: bool = True
+    show_hidden: bool = False
+    show_files: bool = True
+    include_parent_folder: bool = False
+    wofi: dict[str, str] = {}
+    rofi: dict[str, str] = {}
 
-    def __init__(self, **kwargs):
-        self.directories: DirectorySchema = kwargs.get(
-            "directories", self.default["directories"]
-        )
-        self.exec: str = kwargs.get("exec", self.default["exec"])
-        self.show_icons: bool = kwargs.get("show_icons", self.default["show_icons"])
-        self.show_hidden: bool = kwargs.get("show_hidden", self.default["show_hidden"])
-        self.show_files: bool = kwargs.get("show_files", self.default["show_files"])
-        self.ui_provider: str = kwargs.get("ui_provider", self.default["ui_provider"])
-        self.wofi: Dict[str, str] = kwargs.get("wofi", self.default["wofi"])
-        self.rofi: Dict[str, str] = kwargs.get("rofi", self.default["rofi"])
+    @classmethod
+    def from_file(cls, file):
+        file = open(file)
+        contents = file.read()
+        file.close()
+        data: dict[str, Any] = yaml.load(contents, Loader=yaml.Loader)
+
+        obj = cls()
+
+        for key, value in data.items():
+            setattr(obj, key, value)
+
+        return obj
 
     @classmethod
     def dump_default(cls):
-        return yaml.dump(cls.default, Dumper=yaml.Dumper)
+        return yaml.dump(
+            {
+                key: getattr(cls, key)
+                for key in [
+                    prop
+                    for prop in dir(cls)
+                    if not prop.startswith("_")
+                    and not isinstance(getattr(cls, prop), types.MethodType)
+                ]
+            },
+            Dumper=yaml.Dumper,
+        )
 
 
 config_path = util.resolve("~/.config/venture.yaml")
 if os.path.isfile(config_path):
-    file = open(config_path)
-    contents = file.read()
-    file.close()
-    config = Config(**yaml.load(contents, Loader=yaml.Loader))
+    config = Config.from_file(config_path)
 else:
     config = Config()

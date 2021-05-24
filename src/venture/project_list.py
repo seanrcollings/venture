@@ -1,4 +1,4 @@
-from typing import Dict, List, cast, Optional
+from typing import Dict, Optional
 from pathlib import Path
 import os
 
@@ -104,7 +104,8 @@ class ProjectList:
     def handle_nested_dirs(self, base: str, subs: list[str]):
         """handle a base directory and it's sub-dirs"""
         directories = [f"{base}/{sub.lstrip('/')}" for sub in subs]
-        # directories.append(base)
+        if config.include_parent_folder:
+            directories.append(base)
 
         for directory in directories:
             self.projects |= {
