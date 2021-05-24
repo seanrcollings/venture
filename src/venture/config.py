@@ -19,19 +19,16 @@ class Config:
     }
 
     def __init__(self, **kwargs):
-
         self.directories: DirectorySchema = kwargs.get(
             "directories", self.default["directories"]
         )
-        self.exec: str = kwargs.get("exec") or self.default["exec"]  # type: ignore
-        self.show_icons: bool = kwargs.get("show_icons") or self.default["show_icons"]  # type: ignore
-        self.show_hidden: bool = (
-            kwargs.get("show_hidden") or self.default["show_hidden"]  # type: ignore
-        )
-        self.show_files: bool = kwargs.get("show_files") or self.default["show_files"]  # type: ignore
-        self.ui_provider: str = kwargs.get("ui_provider") or self.default["ui_provider"]  # type: ignore
-        self.wofi: Dict[str, str] = kwargs.get("wofi") or self.default["wofi"]  # type: ignore
-        self.rofi: Dict[str, str] = kwargs.get("rofi") or self.default["rofi"]  # type: ignore
+        self.exec: str = kwargs.get("exec", self.default["exec"])
+        self.show_icons: bool = kwargs.get("show_icons", self.default["show_icons"])
+        self.show_hidden: bool = kwargs.get("show_hidden", self.default["show_hidden"])
+        self.show_files: bool = kwargs.get("show_files", self.default["show_files"])
+        self.ui_provider: str = kwargs.get("ui_provider", self.default["ui_provider"])
+        self.wofi: Dict[str, str] = kwargs.get("wofi", self.default["wofi"])
+        self.rofi: Dict[str, str] = kwargs.get("rofi", self.default["rofi"])
 
     @classmethod
     def dump_default(cls):
