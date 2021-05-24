@@ -7,6 +7,7 @@ from .config import config
 from .icons import icon
 from . import util
 
+GLOB = "/*"
 EXCLUDED_DIRS = [
     "node_modules",
     ".git",
@@ -98,17 +99,15 @@ class ProjectList:
                     str(project): project for project in self.get_projects(directory)
                 }
             elif isinstance(directory, dict):
-                self.handle_nested_dirs(directory)
+                self.handle_nested_dirs(**directory)
 
-    def handle_nested_dirs(self, dir_data: dict):
+    def handle_nested_dirs(self, base: str, subs: list[str]):
         """handle a base directory and it's sub-dirs"""
-        base = cast(str, dir_data["base"])
-        subs = cast(List[str], dir_data["subs"])
         directories = [f"{base}/{sub.lstrip('/')}" for sub in subs]
-        directories.append(base)
+        # directories.append(base)
 
         for directory in directories:
-            self.projects |= {  # type: ignore
+            self.projects |= {
                 str(project): project for project in self.get_projects(directory, base)
             }
 
@@ -118,6 +117,10 @@ class ProjectList:
         """
         directory = util.resolve(directory)
         prefix = prefix or directory
+
+        if directory.endswith(GLOB):
+            self.handle_glob(directory)
+            return
 
         for obj in os.scandir(directory):
             path = Path(obj.path)
@@ -132,3 +135,16 @@ class ProjectList:
                 project.specificity += 1
 
             yield project
+
+    def handle_glob(self, directory: str):
+        directory = directory.rstrip(GLOB)
+        dirs = [
+            obj.path.removeprefix(directory)
+            for obj in os.scandir(directory)
+            if obj.is_dir()
+        ]
+
+        self.handle_nested_dirs(
+            directory,
+            dirs,
+        )
