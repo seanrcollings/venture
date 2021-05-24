@@ -12,6 +12,7 @@ mypy = "*"
 [packages]
 pyyaml = "*"
 venture = {editable = true, path = "."}
+arc-cli = "*"
 
 [requires]
 python_version = "3.9"

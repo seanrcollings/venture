@@ -24,5 +24,5 @@ setuptools.setup(
     ],
     python_requires=">=3.9",
     entry_points={"console_scripts": ["venture = venture.__main__:main"]},
-    install_requires=["pyyaml"],
+    install_requires=["pyyaml", "arc-cli"],
 )
