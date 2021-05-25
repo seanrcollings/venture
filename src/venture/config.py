@@ -14,9 +14,6 @@ class Config:
     show_hidden: bool = False
     show_files: bool = True
     include_parent_folder: bool = False
-    wofi: dict[str, str] = {}
-    rofi: dict[str, str] = {}
-    dmenu: dict[str, str] = {}
     quicklaunch: QuickLaunchSchema = {}
 
     def __getitem__(self, item):
@@ -45,6 +42,9 @@ class Config:
         obj = cls()
 
         for key, value in data.items():
+            if key == "ui_provider" and value not in dir(obj):
+                setattr(obj, value, {})
+
             setattr(obj, key, value)
 
         return obj

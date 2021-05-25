@@ -1,6 +1,7 @@
 import subprocess
 import shlex
-from arc import CLI, ExecutionError
+from arc import CLI, ExecutionError, CommandType as ct
+from arc.color import fg, effects
 
 from .config import config
 from .project_list import ProjectList
@@ -54,6 +55,17 @@ def add(name: str, path: str, icon: str = None):
     config.quicklaunch[name] = {"path": path, "icon": icon}
     with open(util.resolve("~/.config/venture.yaml"), "w+") as f:
         f.write(config.dump())
+
+    print(f"{fg.GREEN}{name} Added!{effects.CLEAR}")
+
+
+@quicklaunch.subcommand(command_type=ct.POSITIONAL)
+def remove(name: str):
+    """"Remove an item from the Quick Launch Menu"""
+    config.quicklaunch.pop(name)
+    with open(util.resolve("~/.config/venture.yaml"), "w+") as f:
+        f.write(config.dump())
+    print(f"{fg.GREEN}{name} Removed!{effects.CLEAR}")
 
 
 @cli.command()
