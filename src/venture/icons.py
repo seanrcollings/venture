@@ -1,15 +1,27 @@
 from typing import Dict, Optional
 
-# Load the icons
-
+# Uses Nerd Fonts Icons
 __icons: Dict[str, str] = {
     "directory": "",
     "default": "",
-    "py": "\uf81f",
+    "py": "",
     "rb": "",
     "cr": "",
     "rs": "",
-    "js": "",
+    "js": "",
+    "c": "ﭰ",
+    "cpp": "ﭱ",
+    "cs": "",
+    "css": "",
+    "go": "ﳑ",
+    "html": "",
+    "php": "",
+    "r": "ﳒ",
+    "swift": "ﯣ",
+    "ts": "ﯤ",
+    "json": "ﬥ ",
+    "zip": "遲",
+    "fish": "",
 }
 
 
