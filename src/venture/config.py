@@ -17,7 +17,7 @@ class Config:
     wofi: dict[str, str] = {}
     rofi: dict[str, str] = {}
     dmenu: dict[str, str] = {}
-    quicklaunch: QuickLaunchSchema = []
+    quicklaunch: QuickLaunchSchema = {}
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -28,6 +28,12 @@ class Config:
             for prop in dir(self)
             if not prop.startswith("_") and not callable(getattr(self, prop))
         ]
+
+    def dump(self):
+        return yaml.dump(
+            dict(self.dict()),
+            Dumper=yaml.Dumper,
+        )
 
     @classmethod
     def from_file(cls, file):

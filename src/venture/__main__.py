@@ -20,7 +20,7 @@ def pick(items, pick_config) -> str:
 
 
 def execute(path: str):
-    command = config.exec.format(path=path)
+    command = config.exec.format(path=util.resolve(path))
     command = shlex.split(command)
     subprocess.run(command, check=True)
 
@@ -29,7 +29,6 @@ def execute(path: str):
 @cli.command()
 def run():
     """Open the venture selection menu"""
-    breakpoint()
     projects = ProjectList(config.directories).projects
     choice = pick(projects.keys(), config)
     project = projects[choice]
@@ -41,11 +40,20 @@ def quicklaunch():
     """Open the Quick Launch Menu"""
 
     items = {
-        f"{item.get('icon', ''):<2} {item['name']}": item for item in config.quicklaunch
+        f"{item.get('icon', ''):<2} {name}": item
+        for name, item in config.quicklaunch.items()
     }
     choice = pick(items.keys(), config)
     item = items[choice]
     execute(item["path"])
+
+
+@quicklaunch.subcommand()
+def add(name: str, path: str, icon: str = None):
+    """Add a new item to the Quick Launch Menu"""
+    config.quicklaunch[name] = {"path": path, "icon": icon}
+    with open(util.resolve("~/.config/venture.yaml"), "w+") as f:
+        f.write(config.dump())
 
 
 @cli.command()
