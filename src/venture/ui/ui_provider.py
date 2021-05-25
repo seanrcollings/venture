@@ -1,10 +1,10 @@
-from typing import Any
+from typing import Any, Iterable
 from abc import ABC, abstractmethod
 
 
 class UIProvider(ABC):
     @abstractmethod
-    def run(self, projects, config) -> str:
+    def run(self, items: Iterable[str], config) -> str:
         """Run the UI Interface. Return the selected value"""
 
     def parse_output(self, output: Any) -> Any:

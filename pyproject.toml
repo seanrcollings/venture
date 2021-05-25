@@ -21,7 +21,7 @@ pylint = "^2.7.0"
 
 
 [tool.poetry.scripts]
-venture = "venture.__main__:main"
+venture = "venture.__main__:cli"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

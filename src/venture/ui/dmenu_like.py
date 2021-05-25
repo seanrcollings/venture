@@ -10,9 +10,9 @@ class DmenuLike(UIProvider):
     default_args: list[str] = []
     argument_format: str
 
-    def run(self, projects, config) -> str:
+    def run(self, items, config) -> str:
         args = self.get_commandline_args(config)
-        output = self.execute(projects, args)
+        output = self.execute(items, args)
         return self.parse_output(output)
 
     def get_commandline_args(self, config: Config) -> Iterable[str]:
@@ -26,7 +26,7 @@ class DmenuLike(UIProvider):
     def format_arg(self, name, value):
         return self.argument_format.format(name=name, value=value).split(" ")
 
-    def execute(self, projects: list[str], args):
+    def execute(self, items: list[str], args):
         """Execute the UI command.
 
         This implementation expects the UI to be an external process
@@ -38,7 +38,7 @@ class DmenuLike(UIProvider):
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
         )
-        return proc.communicate(bytes("\n".join(projects), "utf-8"))[0]
+        return proc.communicate(bytes("\n".join(items), "utf-8"))[0]
 
     def parse_output(self, output: bytes):
         choice = output.decode("utf-8").strip("\n")
