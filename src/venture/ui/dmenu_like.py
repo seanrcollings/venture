@@ -6,6 +6,7 @@ from ..config import Config
 
 
 class DmenuLike(UIProvider):
+    command: str
     default_args: list[str] = []
     argument_format: str
 
@@ -16,10 +17,14 @@ class DmenuLike(UIProvider):
 
     def get_commandline_args(self, config: Config) -> Iterable[str]:
         configuration: dict = config[self.command]
-        return [self.format_arg(name, value) for name, value in configuration.items()]
+        return [
+            item
+            for name, value in configuration.items()
+            for item in self.format_arg(name, value)
+        ]
 
     def format_arg(self, name, value):
-        return self.argument_format.format(name=name, value=value)
+        return self.argument_format.format(name=name, value=value).split(" ")
 
     def execute(self, projects: list[str], args):
         """Execute the UI command.
@@ -28,7 +33,6 @@ class DmenuLike(UIProvider):
         and for it to recieve it's input as a newline-seperated
         list of strings from stdin.
         """
-        breakpoint()
         proc = subprocess.Popen(
             [self.command, *self.default_args, *args],
             stdin=subprocess.PIPE,
@@ -62,7 +66,7 @@ class Wofi(DmenuLike):
     def format_arg(self, name, value):
         if name in self.alias_map:
             name = self.alias_map[name]
-        super().format_arg(name, value)
+        return super().format_arg(name, value)
 
 
 dmenu_like_menus: dict[str, Type[DmenuLike]] = {

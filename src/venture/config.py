@@ -17,6 +17,7 @@ class Config:
     include_parent_folder: bool = False
     wofi: dict[str, str] = {}
     rofi: dict[str, str] = {}
+    dmenu: dict[str, str] = {}
 
     def __getitem__(self, item):
         return getattr(self, item)

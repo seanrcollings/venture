@@ -3,8 +3,6 @@ from abc import ABC, abstractmethod
 
 
 class UIProvider(ABC):
-    command: str = ""
-
     @abstractmethod
     def run(self, projects, config) -> str:
         """Run the UI Interface. Return the selected value"""
