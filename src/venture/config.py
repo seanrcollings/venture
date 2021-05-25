@@ -18,6 +18,9 @@ class Config:
     wofi: dict[str, str] = {}
     rofi: dict[str, str] = {}
 
+    def __getitem__(self, item):
+        return getattr(self, item)
+
     @classmethod
     def from_file(cls, file):
         file = open(file)
