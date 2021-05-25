@@ -20,8 +20,8 @@ def run():
         return
 
     project = projects[choice]
-    command = shlex.split(config.exec)
-    command.append(project.fullpath)
+    command = config.exec.format(path=project.fullpath)
+    command = shlex.split(command)
     subprocess.run(command, check=True)
 
 

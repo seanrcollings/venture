@@ -104,8 +104,8 @@ class ProjectList:
     def handle_nested_dirs(self, base: str, subs: list[str]):
         """handle a base directory and it's sub-dirs"""
         directories = [f"{base}/{sub.lstrip('/')}" for sub in subs]
-        if config.include_parent_folder:
-            directories.append(base)
+        # if config.include_parent_folder:
+        directories.append(base)
 
         for directory in directories:
             self.projects |= {
@@ -143,6 +143,7 @@ class ProjectList:
             obj.path.removeprefix(directory)
             for obj in os.scandir(directory)
             if obj.is_dir()
+            and (True if config.show_hidden else not obj.name.startswith("."))
         ]
 
         self.handle_nested_dirs(
