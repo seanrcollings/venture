@@ -4,6 +4,7 @@ import shlex
 from typing import Mapping
 from arc import CLI, ExecutionError, CommandType as ct
 from arc.color import fg, effects
+from arc.utils import timer
 
 from .config import config
 from .project_list import ProjectList
@@ -31,13 +32,25 @@ def execute(path: str):
     subprocess.run(command, check=True)
 
 
+@timer("Project Loading")
+def get_projects():
+    if util.Cache.exists() and config.use_cache:
+        projects = util.Cache.read()
+    else:
+        projects = ProjectList(config.directories).projects
+        if config.use_cache:
+            util.Cache.write(projects)
+
+    return projects
+
+
 @cli.base()
 @cli.command()
 def run():
     """Open the venture selection menu"""
-    projects = ProjectList(config.directories).projects
+    projects = get_projects()
     choice = pick(projects, config, OpenContext.DEFAULT)
-    execute(choice.fullpath)
+    execute(choice)
 
 
 @cli.command()
@@ -130,3 +143,15 @@ def remove(name: str):
     with open(util.resolve("~/.config/venture.yaml"), "w+") as f:
         f.write(config.dump())
     print(f"{fg.GREEN}{name} Removed!{effects.CLEAR}")
+
+
+@cli.command()
+def cache():
+    print("Cache is present" if util.Cache.exists() else "Cache empty")
+
+
+@cache.subcommand()
+def refresh():
+    projects = ProjectList(config.directories).projects
+    util.Cache.write(projects)
+    print("Cache Refreshed")

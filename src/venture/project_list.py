@@ -2,6 +2,7 @@ from typing import Dict, Optional
 from pathlib import Path
 import os
 
+from arc.utils import timer
 from .types import DirectorySchema
 from .config import config
 from .icons import icon
@@ -79,13 +80,13 @@ class Project:
         if not config.show_icons:
             return None
 
-        return icon(filetype)
+        return icon(filetype) or icon("default")
 
 
 class ProjectList:
     def __init__(self, directories: DirectorySchema):
         self.dirs = directories
-        self.projects: Dict[str, Project] = {}
+        self.projects: Dict[str, str] = {}
 
         self.handle_directories()
 
@@ -96,7 +97,8 @@ class ProjectList:
 
             if isinstance(directory, str):
                 self.projects |= {
-                    str(project): project for project in self.get_projects(directory)
+                    str(project): project.fullpath
+                    for project in self.get_projects(directory)
                 }
             elif isinstance(directory, dict):
                 self.handle_nested_dirs(**directory)
@@ -109,7 +111,8 @@ class ProjectList:
 
         for directory in directories:
             self.projects |= {
-                str(project): project for project in self.get_projects(directory, base)
+                str(project): project.fullpath
+                for project in self.get_projects(directory, base)
             }
 
     def get_projects(self, directory: str, prefix: Optional[str] = None):

@@ -15,6 +15,7 @@ class Config:
     show_files: bool = True
     include_parent_folder: bool = False
     quicklaunch: QuickLaunchSchema = {}
+    use_cache: bool = True
 
     def __getitem__(self, item):
         return getattr(self, item)
