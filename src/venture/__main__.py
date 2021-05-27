@@ -58,7 +58,7 @@ def quicklaunch():
 
 @quicklaunch.subcommand("list")
 def list_quicklaunch():
-    """List quicklaunch items"""
+    """List quick-launch entries"""
     if len(config.quicklaunch) == 0:
         print(
             "No quick-launch items, add one with "
@@ -82,15 +82,18 @@ def add(
     no_default_tags: bool = False,
 ):
     """\
-    Add a new item to the Quick Launch Menu
+    Add a new quick-launch entry
 
     Arguments:
-    name=NAME      Display name for the quick-launch entry
-    path=PATH      File path to launch when the entry is picked
-    icon=ICON      Icon to display along with the name, optional
-    tags=TAG1,TAG2 Comma-seperated values to tag the entry with.
-                   Will be displayed along with the name of the
-                   entry
+    name=NAME         Display name for the quick-launch entry
+    path=PATH         File path to launch when the entry is picked
+    icon=ICON         Icon to display along with the name, optional
+    tags=TAG1,TAG2    Comma-seperated values to tag the entry with.
+                      Will be displayed along with the name of the
+                      entry
+
+    --no-default-tags Disable the generation of default tags for this
+                      quick-launch entry
     """
 
     all_tags = get_tags(path, tags or [], no_default_tags)
@@ -104,7 +107,11 @@ def add(
 
 @quicklaunch.subcommand(command_type=ct.POSITIONAL)
 def remove(name: str):
-    """"Remove an item from the Quick Launch Menu"""
+    """\
+    Remove a quick-launch entry
+
+    `quicklaunch:remove <NAME>`
+    """
     if name not in config.quicklaunch:
         raise ExecutionError(f"{name} is not a quick-launch entry")
 
