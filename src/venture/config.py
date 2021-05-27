@@ -19,8 +19,8 @@ class Config:
     quicklaunch: QuickLaunchSchema = {}
     use_cache: bool = True
 
-    def __getitem__(self, item):
-        return getattr(self, item)
+    def get(self, item, default=None):
+        return getattr(self, item, default)
 
     @property
     def exists(self):
