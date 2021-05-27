@@ -8,7 +8,7 @@ python-versions = "*"
 
 [[package]]
 name = "arc-cli"
-version = "2.2.1"
+version = "2.3.0"
 description = "A Regular CLI"
 category = "main"
 optional = false
@@ -202,7 +202,7 @@ appdirs = [
     {file = "appdirs-1.4.4.tar.gz", hash = "sha256:7d5d0167b2b1ba821647616af46a749d1c653740dd0d2415100fe26e27afdf41"},
 ]
 arc-cli = [
-    {file = "arc-cli-2.2.1.tar.gz", hash = "sha256:4bcfd8485c4b22b359fee0b8e958c30c03a45aa0b7051e70940566057a34521f"},
+    {file = "arc-cli-2.3.0.tar.gz", hash = "sha256:74fb87cd52156c244c4825924c44427ea8fc34d0408f15f932cd8c851ae1b532"},
 ]
 astroid = [
     {file = "astroid-2.5.6-py3-none-any.whl", hash = "sha256:4db03ab5fc3340cf619dbc25e42c2cc3755154ce6009469766d7143d1fc2ee4e"},

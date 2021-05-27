@@ -4,6 +4,8 @@ version = "1.1.0"
 description = "Rofi / Wofi based project selector"
 authors = ["Sean Collings <seanrcollings@gmail.com>"]
 license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/seanrcollings/scythe"
 packages = [
     {include = "venture", from = "src"}
 ]
@@ -11,7 +13,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.9"
-arc-cli = "^2.2.1"
+arc-cli = "^2.3.0"
 PyYAML = "^5.4.1"
 
 [tool.poetry.dev-dependencies]
@@ -21,7 +23,7 @@ pylint = "^2.7.0"
 
 
 [tool.poetry.scripts]
-venture = "venture.__main__:main"
+venture = "venture.__main__:cli"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

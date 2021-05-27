@@ -22,6 +22,8 @@ __icons: Dict[str, str] = {
     "json": "ﬥ ",
     "zip": "遲",
     "fish": "",
+    "tsx": "",
+    "jsx": "",
 }
 
 
