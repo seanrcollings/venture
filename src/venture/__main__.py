@@ -123,8 +123,7 @@ def add(
         "icon": icon,
         "tags": list(all_tags),
     }
-    with open(util.resolve("~/.config/venture.yaml"), "w+") as f:
-        f.write(config.dump())
+    config.write()
 
     print(f"{fg.GREEN}{name} Added!{effects.CLEAR}")
 
@@ -146,12 +145,44 @@ def remove(name: str):
 
 
 @cli.command()
-def cache():
-    print("Cache is present" if util.Cache.exists() else "Cache empty")
+def cache(enable: bool = False, disable: bool = False):
+    """\
+    Interact with the Venture cache. if no arguments are provided,
+    will display the current state of the cache
+
+    The cache stores the data generated to display the main listing.
+    For most reasonably sized outputs, the cache isn't necessary, but
+    can still speed things up (if only by a fraction of a second). If
+    you find running refresh to be annoying, try disabling it and review
+    your performance.
+
+    Arguments:
+    --enable  enables the cache
+    --disable disables the cache
+    """
+    if all((enable, disable)):
+        print("Cannot enable and disable the cache at the same time!")
+        return
+
+    if enable:
+        config.use_cache = True
+        config.write()
+        print("Cache Enabled")
+
+    if disable:
+        config.use_cache = False
+        config.write()
+        print("Cache Disabled")
+
+    if not any((enable, disable)):
+        state = fg.GREEN + "enabled" if config.use_cache else fg.RED + "disabled"
+        print(f"Cache is {state}{effects.CLEAR}")
+        print("Cache is present" if util.Cache.exists() else "Cache empty")
 
 
 @cache.subcommand()
 def refresh():
+    """Refreshes the contents of the cache"""
     projects = ProjectList(config.directories).projects
     util.Cache.write(projects)
     print("Cache Refreshed")
