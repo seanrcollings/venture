@@ -21,11 +21,17 @@ class Config:
     def __getitem__(self, item):
         return getattr(self, item)
 
+    @property
+    def exists(self):
+        return os.path.exists(self.__config_file)
+
     def dict(self):
         yield from [
             (prop, getattr(self, prop))
             for prop in dir(self)
-            if not prop.startswith("_") and not callable(getattr(self, prop))
+            if not prop.startswith("_")
+            and not callable(getattr(self, prop))
+            and not isinstance(getattr(self, prop), property)
         ]
 
     def write(self):
@@ -46,6 +52,8 @@ class Config:
         data: dict[str, Any] = yaml.load(contents, Loader=yaml.Loader)
 
         obj = cls()
+        if not data:
+            return obj
 
         for key, value in data.items():
             if key == "ui_provider" and value not in dir(obj):

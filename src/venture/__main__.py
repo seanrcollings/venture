@@ -34,7 +34,7 @@ def execute(path: str):
 
 @timer("Project Loading")
 def get_projects():
-    if util.Cache.exists() and config.use_cache:
+    if util.Cache.exists and config.use_cache:
         projects = util.Cache.read()
     else:
         projects = ProjectList(config.directories).projects
@@ -54,10 +54,13 @@ def run():
 
 
 @cli.command()
-def dump():
-    """Dump Default Config to
-    ~/.config/venture.yaml
-    """
+def dump(force: bool = False):
+    """Dump Default Config to ~/.config/venture.yaml if it does not exist"""
+    if config.exists and not force:
+        raise ExecutionError(
+            "Configuration already exists. Run again with --force to overwrite"
+        )
+
     with open(util.resolve("~/.config/venture.yaml"), "w+") as f:
         f.write(config.dump_default())
 
@@ -177,7 +180,7 @@ def cache(enable: bool = False, disable: bool = False):
     if not any((enable, disable)):
         state = fg.GREEN + "enabled" if config.use_cache else fg.RED + "disabled"
         print(f"Cache is {state}{effects.CLEAR}")
-        print("Cache is present" if util.Cache.exists() else "Cache empty")
+        print("Cache is present" if util.Cache.exists else "Cache empty")
 
 
 @cache.subcommand()
