@@ -19,7 +19,7 @@ __icons: Dict[str, str] = {
     "r": "ﳒ",
     "swift": "ﯣ",
     "ts": "ﯤ",
-    "json": "ﬥ ",
+    "json": "",
     "zip": "遲",
     "fish": "",
     "tsx": "",
@@ -31,4 +31,4 @@ def icon(name: str) -> Optional[str]:
     """Get an icon associated with a filename,
     returns the default if it doesn't exist"""
     name = name.lstrip(".")
-    return __icons.get(name) or __icons.get("default")
+    return __icons.get(name)

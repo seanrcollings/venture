@@ -7,6 +7,7 @@ from . import util
 
 
 class Config:
+    __config_file = util.resolve("~/.config/venture.yaml")
     directories: DirectorySchema = ["~"]
     exec: str = "code -r {path}"
     ui_provider: str = "rofi"
@@ -15,6 +16,7 @@ class Config:
     show_files: bool = True
     include_parent_folder: bool = False
     quicklaunch: QuickLaunchSchema = {}
+    use_cache: bool = True
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -25,6 +27,10 @@ class Config:
             for prop in dir(self)
             if not prop.startswith("_") and not callable(getattr(self, prop))
         ]
+
+    def write(self):
+        with open(self.__config_file, "w") as f:
+            f.write(self.dump())
 
     def dump(self):
         return yaml.dump(
