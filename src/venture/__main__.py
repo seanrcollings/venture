@@ -13,7 +13,7 @@ from .ui.ui_provider import T
 from . import util
 from .tags import get_tags
 
-cli = CLI(name="venture", version="1.2.0")
+cli = CLI(name="venture", version="1.2.1")
 
 
 def pick(items: Mapping[str, T], pick_config, open_context: OpenContext) -> T:

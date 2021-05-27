@@ -31,7 +31,7 @@ class Config:
             for prop in dir(self)
             if not prop.startswith("_")
             and not callable(getattr(self, prop))
-            and not isinstance(getattr(self, prop), property)
+            and not prop == "exists"
         ]
 
     def write(self):
