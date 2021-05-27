@@ -1,9 +1,13 @@
 # Venture
 
-A Rofi / Wofi menu to open projects and files in your favorite editor!
+A Dmenu / Rofi / Wofi menu to open projects and files in your favorite editor!
 
 
 ## Installation
+
+### Dependancies
+Venture supports three UI providers: dmenu, rofi, and wofi. It is expected that you have the one you intend to use installed.
+
 Clone the project. And install with
 
 ```
@@ -35,7 +39,7 @@ directories:
 # Venture also accepts a simple glob pattern. This would be equivelant to listing out each of the sub-directories as entry points manually.
 - ~/sourcecode/school/*
 # Command To execute when an option is chosen. Recieve the {path} token which is the absolute path to
-# the directory of file that the user selected.
+# the directory or file that the user selected.
 exec: code -r {path}
 # Whether or not to display files
 show_files: true
@@ -43,15 +47,37 @@ show_files: true
 show_hidden: false
 # Whether or not to display an icon of the file type
 show_icons: true
-# Which external command to use for the UI either rofi or wofi
+# What provides the UI, currently supports dmenu, rofi, and wofi
 ui_provider: rofi
-# Configuration for Wofi.
-# Allows keys 'config' and 'stylesheet'
-# and expects file paths to those
-wofi: {}
-# Configuration for Rofi
-# Allows key 'theme' which
-# points to a file path for your rofi theme
-rofi: {}
+# For all 3 ui providers, you can add a dictionary to pass arbitrary arguments to the command
+rofi:
+  theme: ~/.config/rofi/theme.rasi
+
 ```
 
+## Quick-launcher
+The quick-launcher allows you to add specific files / directories to it for easy searchable access.
+
+### Excute
+```
+venture quicklauncher
+```
+
+### Add an entry
+Entries are added to `~/.config/venture.yml`
+```
+venture quicklaunch:add \
+        name=ARC \
+        path=~/sourcecode/arc \
+        icon=\uF625 \
+        tags=py,project
+```
+Possible Arguments:
+- `name`: What name to display in the quick-launch menu
+- `path`: Filepath to open on selection
+- `icon`: Icon to display along side the name **optional**
+- `tags`: comma-seperated list of strings to display along with the title. **optional**
+- `--no-default-tags`: Disables Venture's automatic tag detection / creation
+- `--disable-short-tags`: Disables Venture's tag shorthand matching.
+  - enabled: `tags=py` would result in: `[\uF81F python]`
+  - disabled: `tags=py` would result in: `[py]`

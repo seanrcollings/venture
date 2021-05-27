@@ -78,27 +78,38 @@ def add(
     name: str,
     path: str,
     icon: str = "\uf192",
-    tags: list[str] = None,
+    tags: str = None,
     no_default_tags: bool = False,
 ):
     """\
     Add a new quick-launch entry
 
     Arguments:
-    name=NAME         Display name for the quick-launch entry
-    path=PATH         File path to launch when the entry is picked
-    icon=ICON         Icon to display along with the name, optional
-    tags=TAG1,TAG2    Comma-seperated values to tag the entry with.
-                      Will be displayed along with the name of the
-                      entry
+    name=NAME            Display name for the quick-launch entry
+    path=PATH            File path to launch when the entry is picked
+    icon=ICON            Icon to display along with the name, optional
+    tags=TAG1,TAG2       Comma-seperated values to tag the entry with.
+                         Will be displayed along with the name of the
+                         entry
 
-    --no-default-tags Disable the generation of default tags for this
-                      quick-launch entry
+    --no-default-tags    Disable the generation of default tags for this
+                         quick-launch entry
+    --disable-short-tags Disables Venture's tag shorthand matching feature.
+                         use this if you want your tags to always look exactly
+                         as you input them
     """
 
-    all_tags = get_tags(path, tags or [], no_default_tags)
+    all_tags = get_tags(
+        path,
+        tags.split(",") if tags else [],
+        no_default_tags,
+    )
 
-    config.quicklaunch[name] = {"path": path, "icon": icon, "tags": list(all_tags)}
+    config.quicklaunch[name] = {
+        "path": path,
+        "icon": icon,
+        "tags": list(all_tags),
+    }
     with open(util.resolve("~/.config/venture.yaml"), "w+") as f:
         f.write(config.dump())
 
