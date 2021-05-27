@@ -1,4 +1,4 @@
-from typing import List, Union, Dict, TypedDict
+from typing import List, Union, Dict, TypedDict, Optional
 
 
 DirectorySchema = List[Union[str, Dict[str, Union[str, List[str]]]]]
@@ -7,6 +7,7 @@ DirectorySchema = List[Union[str, Dict[str, Union[str, List[str]]]]]
 class QuickLaunchEntry(TypedDict):
     path: str
     icon: str
+    tags: Optional[list[str]]
 
 
 QuickLaunchSchema = Dict[str, QuickLaunchEntry]

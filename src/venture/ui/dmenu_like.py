@@ -1,22 +1,24 @@
-from typing import Iterable, Type
+from __future__ import annotations
+from typing import Iterable, Callable
 import subprocess
 from .ui_provider import UIProvider
-
-from ..config import Config
+from .. import util
 
 
 class DmenuLike(UIProvider):
     command: str
-    default_args: list[str] = []
+    default_args: Iterable[str] = []
     argument_format: str
+    seperator: str = "\n"
 
-    def run(self, items, config) -> str:
-        args = self.get_commandline_args(config)
-        output = self.execute(items, args)
-        return self.parse_output(output)
+    def run(self):
+        args = self.get_commandline_args()
+        output = self.execute(args)
+        parsed = self.parse_output(output)
+        return self.items.get(self._display_items.get(parsed))
 
-    def get_commandline_args(self, config: Config) -> Iterable[str]:
-        configuration: dict = config[self.command]
+    def get_commandline_args(self) -> Iterable[str]:
+        configuration: dict = self.config[self.command]
         return [
             item
             for name, value in configuration.items()
@@ -24,9 +26,16 @@ class DmenuLike(UIProvider):
         ]
 
     def format_arg(self, name, value):
-        return self.argument_format.format(name=name, value=value).split(" ")
+        if value == False:
+            return []
+        if value == True:
+            value = ""
 
-    def execute(self, items: list[str], args):
+        return (
+            self.argument_format.format(name=name, value=value).rstrip(" ").split(" ")
+        )
+
+    def execute(self, args):
         """Execute the UI command.
 
         This implementation expects the UI to be an external process
@@ -38,7 +47,9 @@ class DmenuLike(UIProvider):
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
         )
-        return proc.communicate(bytes("\n".join(items), "utf-8"))[0]
+        return proc.communicate(
+            bytes(self.seperator.join(self._display_items), "utf-8")
+        )[0]
 
     def parse_output(self, output: bytes):
         choice = output.decode("utf-8").strip("\n")
@@ -52,25 +63,39 @@ class Dmenu(DmenuLike):
 
 class Rofi(DmenuLike):
     command = "rofi"
-    default_args = ["-dmenu"]
+    seperator = "|"
+    default_args = ["-dmenu", "-markup-rows", "-sep", seperator]
     argument_format = "-{name} {value}"
+
+
+def tags(item):
+    return util.pango_span(
+        ", ".join(item.get("tags", [])),
+        color="#9c9c9c",
+        size="smaller",
+        weight="light",
+    )
+
+
+class RofiQL(Rofi):
+    default_args = Rofi.default_args + ["-eh", "2"]
+
+    def format_items(self, items):
+        return {
+            f"{item.get('icon', ''):<2} {name} \n {tags(item)}": name
+            for name, item in items.items()
+        }
 
 
 class Wofi(DmenuLike):
     command = "wofi"
-    default_args = ["--dmenu"]
+    default_args = ["--dmenu", "--allow-markup"]
     argument_format = "--{name} {value}"
 
-    alias_map = {"stylesheet": "style", "config": "conf"}
 
-    def format_arg(self, name, value):
-        if name in self.alias_map:
-            name = self.alias_map[name]
-        return super().format_arg(name, value)
-
-
-dmenu_like_menus: dict[str, Type[DmenuLike]] = {
-    "dmenu": Dmenu,
-    "rofi": Rofi,
-    "wofi": Wofi,
-}
+class WofiQL(Wofi):
+    def format_items(self, items):
+        return {
+            f"{item.get('icon', ''):<2} {name} {tags(item)}": name
+            for name, item in items.items()
+        }
