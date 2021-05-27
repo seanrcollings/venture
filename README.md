@@ -59,7 +59,7 @@ The quick-launcher allows you to add specific files / directories to it for easy
 
 ### Excute
 ```
-venture quicklauncher
+venture quicklaunch
 ```
 
 ### Add an entry
