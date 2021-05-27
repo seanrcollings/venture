@@ -6,14 +6,17 @@ from arc import CLI, ExecutionError, CommandType as ct
 from arc.color import fg, effects
 from arc.utils import timer
 
-from .config import config
+# Intiialzie the CLI first, so
+# that the arc_logger gets properly setuo
+cli = CLI(name="venture", version="1.2.1")
+
+# pylint: disable=wrong-import-position
 from .project_list import ProjectList
 from .ui import get_ui_provider, OpenContext
 from .ui.ui_provider import T
 from . import util
 from .tags import get_tags
-
-cli = CLI(name="venture", version="1.2.1")
+from .config import config
 
 
 def pick(items: Mapping[str, T], pick_config, open_context: OpenContext) -> T:

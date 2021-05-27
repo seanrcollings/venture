@@ -1,6 +1,7 @@
 from typing import Any
 import os
 import yaml
+from arc.utils import timer
 
 from .types import DirectorySchema, QuickLaunchSchema
 from . import util
@@ -26,13 +27,15 @@ class Config:
         return os.path.exists(self.__config_file)
 
     def dict(self):
-        yield from [
-            (prop, getattr(self, prop))
-            for prop in dir(self)
-            if not prop.startswith("_")
-            and not callable(getattr(self, prop))
-            and not prop == "exists"
-        ]
+        return dict(
+            {
+                prop: getattr(self, prop)
+                for prop in dir(self)
+                if not prop.startswith("_")
+                and not callable(getattr(self, prop))
+                and not prop == "exists"
+            }
+        )
 
     def write(self):
         with open(self.__config_file, "w") as f:
@@ -40,16 +43,17 @@ class Config:
 
     def dump(self):
         return yaml.dump(
-            dict(self.dict()),
-            Dumper=yaml.Dumper,
+            self.dict(),
+            Dumper=yaml.CDumper,
         )
 
     @classmethod
+    @timer("Loading Config")
     def from_file(cls, file):
         file = open(file)
         contents = file.read()
         file.close()
-        data: dict[str, Any] = yaml.load(contents, Loader=yaml.Loader)
+        data: dict[str, Any] = yaml.load(contents, Loader=yaml.CLoader)
 
         obj = cls()
         if not data:
@@ -66,8 +70,8 @@ class Config:
     @classmethod
     def dump_default(cls):
         return yaml.dump(
-            dict(Config.dict(Config)),
-            Dumper=yaml.Dumper,
+            Config.dict(Config),
+            Dumper=yaml.CDumper,
         )
 
 
