@@ -47,5 +47,6 @@ class Cache:
         f.close()
 
     @classmethod
+    @property
     def exists(cls):
         return os.path.isfile(cls.cache_path)
