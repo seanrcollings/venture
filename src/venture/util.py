@@ -1,6 +1,8 @@
 import os
 import functools
 
+import ujson
+
 
 def resolve(path: str) -> str:
     return os.path.expanduser(path)
@@ -34,17 +36,15 @@ class Cache:
     @classmethod
     @catch
     def read(cls):
-        f = open(cls.cache_path, "r")
-        data = dict([line.split("=") for line in f.readlines()])
-        f.close()
-        return data
+        with open(cls.cache_path, "r") as f:
+            data = ujson.loads(f.read())
+            return data
 
     @classmethod
     @catch
     def write(cls, data: dict):
-        f = open(cls.cache_path, "w")
-        f.write("\n".join("=".join(item) for item in data.items()))
-        f.close()
+        with open(cls.cache_path, "w") as f:
+            f.write(ujson.dumps(data, ensure_ascii=False))
 
     @classmethod
     @property
