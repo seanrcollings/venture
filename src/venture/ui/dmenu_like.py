@@ -18,7 +18,10 @@ class DmenuLike(UIProvider):
         return self.items.get(self._display_items.get(parsed))
 
     def get_commandline_args(self) -> Iterable[str]:
-        configuration: dict = self.config[self.command]
+        configuration: dict = self.config.get(self.command)
+        if not configuration:
+            return []
+
         return [
             item
             for name, value in configuration.items()
