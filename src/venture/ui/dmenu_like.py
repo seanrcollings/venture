@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Iterable, Callable
+from typing import Iterable
 import subprocess
 from .ui_provider import UIProvider
 from .. import util

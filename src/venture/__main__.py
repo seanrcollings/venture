@@ -10,6 +10,7 @@ from .project_list import ProjectList
 from .ui import get_ui_provider, OpenContext
 from .ui.ui_provider import T
 from . import util
+from .tags import get_tags
 
 cli = CLI()
 
@@ -73,16 +74,28 @@ def list_quicklaunch():
 
 
 @quicklaunch.subcommand()
-def add(name: str, path: str, icon: str = None):
+def add(
+    name: str,
+    path: str,
+    icon: str = "\uf192",
+    tags: list[str] = None,
+    no_default_tags: bool = False,
+):
     """\
     Add a new item to the Quick Launch Menu
 
     Arguments:
-    name=NAME  Display name for the quick-launch entry
-    path=PATH  File path to launch when the entry is picked
-    icon=ICON  Icon to display along with the name, optional
+    name=NAME      Display name for the quick-launch entry
+    path=PATH      File path to launch when the entry is picked
+    icon=ICON      Icon to display along with the name, optional
+    tags=TAG1,TAG2 Comma-seperated values to tag the entry with.
+                   Will be displayed along with the name of the
+                   entry
     """
-    config.quicklaunch[name] = {"path": path, "icon": icon, "tags": []}
+
+    all_tags = get_tags(path, tags or [], no_default_tags)
+
+    config.quicklaunch[name] = {"path": path, "icon": icon, "tags": list(all_tags)}
     with open(util.resolve("~/.config/venture.yaml"), "w+") as f:
         f.write(config.dump())
 
@@ -92,6 +105,9 @@ def add(name: str, path: str, icon: str = None):
 @quicklaunch.subcommand(command_type=ct.POSITIONAL)
 def remove(name: str):
     """"Remove an item from the Quick Launch Menu"""
+    if name not in config.quicklaunch:
+        raise ExecutionError(f"{name} is not a quick-launch entry")
+
     config.quicklaunch.pop(name)
     with open(util.resolve("~/.config/venture.yaml"), "w+") as f:
         f.write(config.dump())
