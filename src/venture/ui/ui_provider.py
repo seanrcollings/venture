@@ -2,6 +2,8 @@ from __future__ import annotations
 from typing import Mapping, Any, TypeVar
 from enum import Enum
 from abc import ABC, abstractmethod
+import platform
+from arc.color import fg, effects
 
 from ..config import Config
 
@@ -16,11 +18,22 @@ class OpenContext(Enum):
 Items = Mapping[str, T]
 
 
+class UIError(Exception):
+    ...
+
+
 class UIProvider(ABC):
+    platform: str
+
     def __init__(self, items: Items, config: Config):
         self.items = items
         self.config = config
         self._display_items = self.format_items(items)
+
+        if platform.system().lower() != self.platform.lower():
+            raise UIError(
+                f"{self.__class__.__name__} UI is only supported on {fg.YELLOW}{self.platform}{effects.CLEAR}"
+            )
 
     @abstractmethod
     def run(self) -> T | None:

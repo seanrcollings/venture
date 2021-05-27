@@ -1,7 +1,7 @@
 from typing import Type
 from arc import ExecutionError
 
-from .dmenu_like import Dmenu, Rofi, RofiQL, Wofi, WofiQL
+from .dmenu_like import Dmenu, Rofi, RofiQL, Wofi, WofiQL, Choose
 from .ui_provider import UIProvider, OpenContext
 
 
@@ -18,6 +18,10 @@ providers: ProviderType = {
     "dmenu": {
         OpenContext.DEFAULT: Dmenu,
         OpenContext.QUICK_LAUNCH: Dmenu,
+    },
+    "choose": {
+        OpenContext.DEFAULT: Choose,
+        OpenContext.QUICK_LAUNCH: Choose,
     },
 }
 
