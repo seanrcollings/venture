@@ -50,3 +50,14 @@ class Cache:
     @property
     def exists(cls):
         return os.path.isfile(cls.cache_path)
+
+
+class DictWrapper(dict):
+    def __str__(self):
+        return "\n".join(f"{key}: {value}" for key, value in self.items())
+
+    def __getattr__(self, attr):
+        return self[attr]
+
+    def __setattr__(self, attr, value):
+        self[attr] = value
