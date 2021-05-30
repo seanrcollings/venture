@@ -50,3 +50,27 @@ class Cache:
     @property
     def exists(cls):
         return os.path.isfile(cls.cache_path)
+
+
+class DictWrapper(dict):
+    def __str__(self):
+        return "\n".join(f"{key}: {value}" for key, value in self.items())
+
+    def __getattr__(self, attr):
+        return self[attr]
+
+    def __setattr__(self, attr, value):
+        self[attr] = value
+
+
+def confirm(message: str):
+    result = {
+        "y": True,
+        "n": False,
+    }
+    print(f"{message} [Y/N]")
+    while True:
+        user_input = input("> ").lower()
+        if user_input in result:
+            return result[user_input]
+        print("Not understood, please type 'y' or 'n'")

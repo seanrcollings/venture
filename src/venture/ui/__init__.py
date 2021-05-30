@@ -8,15 +8,15 @@ from .ui_provider import UIProvider, OpenContext
 ProviderType = dict[str, dict[OpenContext, Type[UIProvider]]]
 providers: ProviderType = {
     "rofi": {
-        OpenContext.DEFAULT: Rofi,
+        OpenContext.BROWSE: Rofi,
         OpenContext.QUICK_LAUNCH: RofiQL,
     },
     "wofi": {
-        OpenContext.DEFAULT: Wofi,
+        OpenContext.BROWSE: Wofi,
         OpenContext.QUICK_LAUNCH: WofiQL,
     },
     "dmenu": {
-        OpenContext.DEFAULT: Dmenu,
+        OpenContext.BROWSE: Dmenu,
         OpenContext.QUICK_LAUNCH: Dmenu,
     },
 }

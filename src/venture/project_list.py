@@ -2,7 +2,6 @@ from typing import Dict, Optional
 from pathlib import Path
 import os
 
-from arc.utils import timer
 from .types import DirectorySchema
 from .config import config
 from .icons import icon
@@ -13,6 +12,8 @@ EXCLUDED_DIRS = [
     "node_modules",
     ".git",
 ]
+
+browse = config.browse
 
 
 class Project:
@@ -77,7 +78,7 @@ class Project:
     def get_icon(filetype: str) -> Optional[str]:
         """Returns the icon associated with a specific file type,
         returns none if config.show_icons is set to False"""
-        if not config.show_icons:
+        if not browse.show_icons:
             return None
 
         return icon(filetype) or icon("default")
@@ -106,7 +107,7 @@ class ProjectList:
     def handle_nested_dirs(self, base: str, subs: list[str]):
         """handle a base directory and it's sub-dirs"""
         directories = [f"{base}/{sub.lstrip('/')}" for sub in subs]
-        # if config.include_parent_folder:
+        # if browse.include_parent_folder:
         directories.append(base)
 
         for directory in directories:
@@ -128,8 +129,8 @@ class ProjectList:
 
         for obj in os.scandir(directory):
             path = Path(obj.path)
-            if (path.name.startswith(".") and not config.show_hidden) or (
-                path.is_file() and not config.show_files
+            if (path.name.startswith(".") and not browse.show_hidden) or (
+                path.is_file() and not browse.show_files
             ):
                 continue
 
@@ -146,7 +147,7 @@ class ProjectList:
             obj.path.removeprefix(directory)
             for obj in os.scandir(directory)
             if obj.is_dir()
-            and (True if config.show_hidden else not obj.name.startswith("."))
+            and (True if browse.show_hidden else not obj.name.startswith("."))
         ]
 
         self.handle_nested_dirs(
