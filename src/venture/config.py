@@ -1,14 +1,15 @@
 from typing import Any
 import os
 import yaml
-from arc.utils import timer
+from arc.utils import timer, logger
 
 from .types import DirectorySchema, QuickLaunchSchema
 from . import util
 
+CONFIG_FILE = os.getenv("VENTURE_CONFIG") or util.resolve("~/.config/venture.yaml")
+
 
 class Config:
-    __config_file = util.resolve("~/.config/venture.yaml")
     directories: DirectorySchema = ["~"]
     exec: str = "code -r {path}"
     ui_provider: str = "rofi"
@@ -24,7 +25,7 @@ class Config:
 
     @property
     def exists(self):
-        return os.path.exists(self.__config_file)
+        return os.path.exists(CONFIG_FILE)
 
     def dict(self):
         return dict(
@@ -38,7 +39,7 @@ class Config:
         )
 
     def write(self):
-        with open(self.__config_file, "w") as f:
+        with open(CONFIG_FILE, "w") as f:
             f.write(self.dump())
 
     def dump(self):
@@ -75,8 +76,9 @@ class Config:
         )
 
 
-config_path = util.resolve("~/.config/venture.yaml")
-if os.path.isfile(config_path):
-    config = Config.from_file(config_path)
+if os.path.isfile(CONFIG_FILE):
+    logger.debug("Loading %s", CONFIG_FILE)
+    config = Config.from_file(CONFIG_FILE)
 else:
+    logger.debug("Config File not found, loading defaults")
     config = Config()

@@ -1,13 +1,12 @@
 from __future__ import annotations
 import subprocess
-import shlex
 from typing import Mapping
 from arc import CLI, ExecutionError, CommandType as ct
 from arc.color import fg, effects
-from arc.utils import timer
+from arc.utils import timer, logger
 
 # Intiialzie the CLI first, so
-# that the arc_logger gets properly setuo
+# that the arc_logger gets properly setup
 cli = CLI(name="venture", version="1.2.3")
 
 # pylint: disable=wrong-import-position
@@ -31,8 +30,9 @@ def pick(items: Mapping[str, T], pick_config, open_context: OpenContext) -> T:
 
 def execute(path: str):
     command = config.exec.format(path=util.resolve(path))
-    command = shlex.split(command)
-    subprocess.run(command, check=True)
+    # command = shlex.split(command)
+    logger.debug("Executing %s", command)
+    subprocess.run(command, check=True, shell=True)
 
 
 @timer("Project Loading")
@@ -52,7 +52,7 @@ def get_projects():
 def run():
     """Open the venture selection menu"""
     projects = get_projects()
-    choice = pick(projects, config, OpenContext.DEFAULT)
+    choice: str = pick(projects, config, OpenContext.DEFAULT)
     execute(choice)
 
 
