@@ -3,7 +3,7 @@ from typing import Mapping, Any, TypeVar
 from abc import ABC, abstractmethod
 
 from ..config import Config
-from ..types import OpenContext
+
 
 T = TypeVar("T")
 

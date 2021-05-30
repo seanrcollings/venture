@@ -3,6 +3,7 @@ from typing import Iterable
 import subprocess
 from .ui_provider import UIProvider
 from .. import util
+from ..icons import icon
 
 
 class DmenuLike(UIProvider):
@@ -70,23 +71,31 @@ class Rofi(DmenuLike):
     argument_format = "-{name} {value}"
 
 
-def tags(item):
-    return util.pango_span(
-        ", ".join(item.get("tags", [])),
-        color="#9c9c9c",
-        size="smaller",
-        weight="light",
-    )
+class QL(DmenuLike):
+    tag_sep: str = "\n"
 
-
-class RofiQL(Rofi):
-    default_args = Rofi.default_args + ["-eh", "2"]
+    def tags(self, item):
+        all_tags = (
+            [f"{icon('directory')}  {item['path']}"] + item.get("tags", [])
+            if self.config.quicklaunch.show_filepath
+            else item.get("tags", [])
+        )
+        return util.pango_span(
+            ", ".join(all_tags),
+            color="#9c9c9c",
+            size="smaller",
+            weight="light",
+        )
 
     def format_items(self, items):
         return {
-            f"{item.get('icon', ''):<2} {name} \n {tags(item)}": name
+            f"{item.get('icon', ''):<2} {name}{self.tag_sep}{self.tags(item)}": name
             for name, item in items.items()
         }
+
+
+class RofiQL(Rofi, QL):
+    default_args = Rofi.default_args + ["-eh", "2"]
 
 
 class Wofi(DmenuLike):
@@ -95,9 +104,5 @@ class Wofi(DmenuLike):
     argument_format = "--{name} {value}"
 
 
-class WofiQL(Wofi):
-    def format_items(self, items):
-        return {
-            f"{item.get('icon', ''):<2} {name} {tags(item)}": name
-            for name, item in items.items()
-        }
+class WofiQL(Wofi, QL):
+    tag_sep = " "

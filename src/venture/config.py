@@ -26,6 +26,7 @@ class BrowseConfig(BaseModel):
 
 class QuickLaunchConfig(BaseModel):
     exec: str = ""
+    show_filepath: bool = False
     entries: dict[str, QuickLaunchEntry] = {}
 
 
