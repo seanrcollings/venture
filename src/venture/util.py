@@ -61,3 +61,16 @@ class DictWrapper(dict):
 
     def __setattr__(self, attr, value):
         self[attr] = value
+
+
+def confirm(message: str):
+    result = {
+        "y": True,
+        "n": False,
+    }
+    print(f"{message} [Y/N]")
+    while True:
+        user_input = input("> ").lower()
+        if user_input in result:
+            return result[user_input]
+        print("Not understood, please type 'y' or 'n'")

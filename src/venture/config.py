@@ -1,4 +1,6 @@
 import os
+from typing import Any
+
 import yaml
 from arc.utils import logger, timer
 from pydantic import BaseModel
@@ -53,7 +55,8 @@ class Config(BaseModel):
         with open(file) as f:
             contents = f.read()
 
-        return cls(**yaml.load(contents, Loader=yaml.CLoader))
+        data: dict[str, Any] = yaml.load(contents, Loader=yaml.CLoader)
+        return cls(**data)
 
     def write(self, default: bool = False):
         """Write Configuration to file in yaml format"""
@@ -68,6 +71,36 @@ class Config(BaseModel):
     @staticmethod
     def exists() -> bool:
         return os.path.exists(CONFIG_FILE)
+
+    @classmethod
+    def update_config(cls, data: dict[str, Any]) -> "Config":
+        """Given the old config data structure, updates it to match the new design"""
+        default = cls()
+        return cls(
+            **{
+                "ui": data.get("ui_provider", default.ui),
+                "args": data.get(data.get("ui_provider", default.ui), {}),
+                "exec": data.get("exec", default.exec),
+                "browse": {
+                    "exec": default.browse.exec,
+                    "use_cache": data.get("use_cache", default.browse.use_cache),
+                    "show_files": data.get("show_files", default.browse.show_files),
+                    "show_hidden": data.get("show_hidden", default.browse.show_hidden),
+                    "show_icons": data.get("show_icons", default.browse.show_icons),
+                    "include_parent_folder": data.get(
+                        "include_parent_folder", default.browse.include_parent_folder
+                    ),
+                    "show_quicklaunch": data.get(
+                        "show_quicklaunch_in_browse", default.browse.show_quicklaunch
+                    ),
+                    "entries": data.get("directories", default.browse.entries),
+                },
+                "quicklaunch": {
+                    "exec": default.quicklaunch.exec,
+                    "entries": data.get("quicklaunch", default.quicklaunch.entries),
+                },
+            }
+        )
 
 
 if os.path.isfile(CONFIG_FILE):

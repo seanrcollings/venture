@@ -1,8 +1,9 @@
 import subprocess
-from typing import Mapping
+from typing import Any, Mapping
 from arc import CLI, ExecutionError, CommandType as ct
 from arc.color import fg, effects
 from arc.utils import timer, logger
+import yaml
 
 # Intiialzie the CLI first, so
 # that the arc_logger gets properly setup
@@ -14,7 +15,7 @@ from .ui import get_ui_provider
 from .ui.ui_provider import T
 from . import util
 from .tags import get_tags
-from .config import config, Config
+from .config import config, Config, CONFIG_FILE
 from .types import OpenContext
 
 
@@ -197,3 +198,27 @@ def refresh():
     projects = ProjectList(config.browse.entries).projects
     util.Cache.write(projects)
     print("Cache Refreshed")
+
+
+@cli.subcommand("update_config")
+def update():
+    """Checks if the config file needs to be updated"""
+    with open(CONFIG_FILE, "r") as f:
+        data: dict[str, Any] = yaml.load(f.read(), Loader=yaml.CLoader)
+
+    if data.get("directories"):
+        should_update = util.confirm(
+            "Looks like you're using an old version of the "
+            "config, would you like to update it?"
+        )
+        if should_update:
+            updated = Config.update_config(data)
+            updated.write()
+            print("Config updated, you should be good to go!")
+        else:
+            print(
+                "Ok, but until you update only ",
+                "the default configuration will apply",
+            )
+    else:
+        print("No updates needed!")
