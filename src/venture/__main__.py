@@ -15,7 +15,7 @@ from .ui import get_ui_provider, OpenContext
 from .ui.ui_provider import T
 from . import util
 from .tags import get_tags
-from .config import config
+from .config import config, CONFIG_FILE
 
 
 def pick(items: Mapping[str, T], pick_config, open_context: OpenContext) -> T:
@@ -30,7 +30,6 @@ def pick(items: Mapping[str, T], pick_config, open_context: OpenContext) -> T:
 
 def execute(path: str):
     command = config.exec.format(path=util.resolve(path))
-    # command = shlex.split(command)
     logger.debug("Executing %s", command)
     subprocess.run(command, check=True, shell=True)
 
@@ -38,7 +37,7 @@ def execute(path: str):
 @timer("Project Loading")
 def get_projects():
     if util.Cache.exists and config.use_cache:
-        projects = util.Cache.read()
+        projects: dict[str, str] = util.Cache.read()
     else:
         projects = ProjectList(config.directories).projects
         if config.use_cache:
@@ -52,8 +51,17 @@ def get_projects():
 def run():
     """Open the venture selection menu"""
     projects = get_projects()
+    # The method to add the QuickLaunch to the Menu
+    # is a little hacky.
+    quick_launch_choice = "quicklaunch"
+    if config.quick_launch_in_browse:
+        projects = {"\uf85b  QuickLaunch": quick_launch_choice, **projects}
+
     choice: str = pick(projects, config, OpenContext.DEFAULT)
-    execute(choice)
+    if choice == quick_launch_choice:
+        cli(quick_launch_choice)
+    else:
+        execute(choice)
 
 
 @cli.command()
@@ -64,7 +72,7 @@ def dump(force: bool = False):
             "Configuration already exists. Run again with --force to overwrite"
         )
 
-    with open(util.resolve("~/.config/venture.yaml"), "w+") as f:
+    with open(CONFIG_FILE, "w+") as f:
         f.write(config.dump_default())
 
 
@@ -145,7 +153,7 @@ def remove(name: str):
         raise ExecutionError(f"{name} is not a quick-launch entry")
 
     config.quicklaunch.pop(name)
-    with open(util.resolve("~/.config/venture.yaml"), "w+") as f:
+    with open(CONFIG_FILE, "w+") as f:
         f.write(config.dump())
     print(f"{fg.GREEN}{name} Removed!{effects.CLEAR}")
 

@@ -19,6 +19,7 @@ class Config:
     include_parent_folder: bool = False
     quicklaunch: QuickLaunchSchema = {}
     use_cache: bool = True
+    quick_launch_in_browse: bool = False
 
     def get(self, item, default=None):
         return getattr(self, item, default)
