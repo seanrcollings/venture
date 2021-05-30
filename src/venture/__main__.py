@@ -7,7 +7,7 @@ from arc.utils import timer, logger
 
 # Intiialzie the CLI first, so
 # that the arc_logger gets properly setup
-cli = CLI(name="venture", version="1.2.3")
+cli = CLI(name="venture", version="1.3.0")
 
 # pylint: disable=wrong-import-position
 from .project_list import ProjectList
