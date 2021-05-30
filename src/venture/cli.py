@@ -194,6 +194,6 @@ def cache(enable: bool = False, disable: bool = False):
 @cache.subcommand()
 def refresh():
     """Refreshes the contents of the cache"""
-    projects = ProjectList(config.directories).projects
+    projects = ProjectList(config.browse.entries).projects
     util.Cache.write(projects)
     print("Cache Refreshed")
