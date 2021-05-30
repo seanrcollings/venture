@@ -1,16 +1,11 @@
 from __future__ import annotations
 from typing import Mapping, Any, TypeVar
-from enum import Enum
 from abc import ABC, abstractmethod
 
 from ..config import Config
+from ..types import OpenContext
 
 T = TypeVar("T")
-
-
-class OpenContext(Enum):
-    DEFAULT = "Default"
-    QUICK_LAUNCH = "QuickLaunch"
 
 
 Items = Mapping[str, T]

@@ -5,6 +5,7 @@ from arc.utils import logger, timer
 
 from .types import DirectorySchema, QuickLaunchEntry
 from . import util
+from .types import OpenContext
 
 CONFIG_FILE = os.getenv("VENTURE_CONFIG") or util.resolve("~/.config/venture.yaml")
 
@@ -51,16 +52,29 @@ class Config:
         yield from [
             (
                 prop,
-                dict(value)
-                if isinstance(value := getattr(self, prop), util.DictWrapper)
-                else value,
+                dict(value) if issubclass(value.__class__, util.DictWrapper) else value,
             )
             for prop in dir(self)
-            if not prop.startswith("_") and not callable(getattr(self, prop))
+            if not prop.startswith("_")
+            and (value := getattr(self, prop))
+            and not callable(value)
         ]
 
     def get(self, item, default=None):
         return getattr(self, item, default)
+
+    def get_exec(self, open_context: OpenContext = None):
+        if open_context is OpenContext.BROWSE:
+            exec_str = self.browse.get("exec", self.exec)
+        elif open_context is OpenContext.QUICK_LAUNCH:
+            exec_str = self.quicklaunch.get("exec", self.exec)
+        else:
+            return self.exec
+
+        if not exec_str:
+            return self.exec
+
+        return exec_str
 
     @classmethod
     @timer("Loading Config")
@@ -74,9 +88,6 @@ class Config:
             return obj
 
         for key, value in data.items():
-            if key == "ui_provider" and value not in dir(obj):
-                setattr(obj, value, {})
-
             if isinstance(value, dict):
                 setattr(obj, key, util.DictWrapper(obj.get(key) | value))
             else:

@@ -10,11 +10,12 @@ cli = CLI(name="venture", version="1.4.0")
 
 # pylint: disable=wrong-import-position
 from .project_list import ProjectList
-from .ui import get_ui_provider, OpenContext
+from .ui import get_ui_provider
 from .ui.ui_provider import T
 from . import util
 from .tags import get_tags
 from .config import config, Config
+from .types import OpenContext
 
 
 def pick(items: Mapping[str, T], pick_config: Config, open_context: OpenContext) -> T:
@@ -27,8 +28,9 @@ def pick(items: Mapping[str, T], pick_config: Config, open_context: OpenContext)
     return choice
 
 
-def execute(path: str):
-    command = config.exec.format(path=util.resolve(path))
+def execute(path: str, open_context: OpenContext):
+    exec_str = config.get_exec(open_context)
+    command = exec_str.format(path=util.resolve(path))
     logger.debug("Executing %s", command)
     subprocess.run(command, check=True, shell=True)
 
@@ -56,11 +58,11 @@ def run():
     if config.browse.show_quicklaunch:
         projects = {"\uf85b  QuickLaunch": quick_launch_choice, **projects}
 
-    choice: str = pick(projects, config, OpenContext.DEFAULT)
+    choice: str = pick(projects, config, OpenContext.BROWSE)
     if choice == quick_launch_choice:
         cli(quick_launch_choice)
     else:
-        execute(choice)
+        execute(choice, OpenContext.BROWSE)
 
 
 @cli.command()
@@ -77,7 +79,7 @@ def dump(force: bool = False):
 def quicklaunch():
     """Open the Quick Launch Menu"""
     choice = pick(config.quicklaunch.entries, config, OpenContext.QUICK_LAUNCH)
-    execute(choice["path"])
+    execute(choice["path"], OpenContext.QUICK_LAUNCH)
 
 
 @quicklaunch.subcommand("list")
