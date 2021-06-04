@@ -1,35 +1,11 @@
 from pathlib import Path
-from .icons import icon
-from .util import resolve
-
-file_tags = {
-    "py": "python",
-    "rb": "ruby",
-    "cr": "crystal",
-    "rs": "rust",
-    "js": "javascript",
-    "c": "",
-    "cpp": "",
-    "cs": "",
-    "css": "css",
-    "go": "go",
-    "html": "html",
-    "php": "php",
-    "r": "r",
-    "swift": "swift",
-    "ts": "typescript",
-    "json": "json",
-    "fish": "fish",
-    "tsx": "react",
-    "jsx": "react",
-}
+from .icons import file_icon_map, filetype_icon
+from .util import resolve, pango_span
 
 
 def get_icon_tag(suffix):
-    file_tag = file_tags.get(suffix)
-    if file_tag:
-        return f"{icon(suffix)} {file_tag}"
-    return None
+    icon = filetype_icon(suffix)
+    return pango_span(f"{icon.code}", color=icon.color) + f" { file_icon_map[suffix]}"
 
 
 def get_tags(filepath: str, user_tags: list[str], no_default_tags=False):
@@ -39,14 +15,14 @@ def get_tags(filepath: str, user_tags: list[str], no_default_tags=False):
 
     path = Path(filepath)
     tags = set(
-        map(lambda tag: get_icon_tag(tag) if tag in file_tags else tag, user_tags)
+        map(lambda tag: get_icon_tag(tag) if tag in file_icon_map else tag, user_tags)
     )
 
     extension = path.suffix.lstrip(".")
 
-    if path.is_file() and extension in file_tags:
+    if path.is_file() and extension in file_icon_map:
         tags.add(get_icon_tag(extension))
     if "config" in str(path.absolute()):
-        tags.add("\ue615 config")
+        tags.add(get_icon_tag("config"))
 
     return tags

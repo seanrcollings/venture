@@ -1,10 +1,11 @@
 from typing import Dict, Optional
 from pathlib import Path
+import functools
 import os
 
 from .types import DirectorySchema
 from .config import config
-from .icons import icon
+from .icons import default, filetype_icon
 from . import util
 
 GLOB = "/*"
@@ -75,13 +76,15 @@ class Project:
         return f"<Project {self.path}>"
 
     @staticmethod
+    @functools.lru_cache()
     def get_icon(filetype: str) -> Optional[str]:
         """Returns the icon associated with a specific file type,
         returns none if config.show_icons is set to False"""
         if not browse.show_icons:
             return None
 
-        return icon(filetype) or icon("default")
+        icon = filetype_icon(filetype.lstrip(".")) or default
+        return util.pango_span(icon.code, color=icon.color)
 
 
 class ProjectList:

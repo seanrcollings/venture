@@ -3,7 +3,7 @@ from typing import Iterable
 import subprocess
 from .ui_provider import UIProvider
 from .. import util
-from ..icons import icon
+from ..icons import icon_map
 
 
 class DmenuLike(UIProvider):
@@ -76,7 +76,7 @@ class QL(DmenuLike):
 
     def tags(self, item):
         all_tags = (
-            [f"{icon('directory')}  {item['path']}"] + item.get("tags", [])
+            [f"{icon_map.get('directory')}  {item['path']}"] + item.get("tags", [])
             if self.config.quicklaunch.show_filepath
             else item.get("tags", [])
         )
