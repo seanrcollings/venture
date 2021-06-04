@@ -100,13 +100,17 @@ def list_quicklaunch():
         )
 
 
+DOT = "\uf192"
+
+
 @quicklaunch.subcommand()
 def add(
     name: str,
     path: str,
-    icon: str = "\uf192",
+    icon: str = DOT,
     tags: str = None,
     no_default_tags: bool = False,
+    icon_only: bool = False,
 ):
     """\
     Add a new quick-launch entry
@@ -117,15 +121,18 @@ def add(
     icon=ICON            Icon to display along with the name, optional
     tags=TAG1,TAG2       Comma-seperated values to tag the entry with.
                          Will be displayed along with the name of the
-                         entry
+                         entry. Icon substitution available.
 
     --no-default-tags    Disable the generation of default tags for this
                          quick-launch entry
+    --icon-only          Automatic tag-generation will display icon-only rather
+                         than icon + name
     """
 
     all_tags = get_tags(
         path,
         tags.split(",") if tags else [],
+        icon_only,
         no_default_tags,
     )
 

@@ -38,7 +38,7 @@ def iconize(string: str, colored: bool = False) -> str:
         else:
             formatted = filetype
 
-        replaces = re.sub(f":{filetype}:", formatted, replaces)
+        replaces = re.sub(f":{filetype}:", formatted + " ", replaces)
 
     long_name_regex = re.compile(r"\|([\w-]*)\|")
     filetypes = long_name_regex.findall(string)

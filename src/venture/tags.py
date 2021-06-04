@@ -23,7 +23,16 @@ def format_tag(icon: str, icon_only: bool = False):
     return f":{icon}:" if icon_only else f"|{icon}|"
 
 
-def get_tags(filepath: str, user_tags: list[str], icon_only: bool = False) -> set[str]:
+def get_tags(
+    filepath: str,
+    user_tags: list[str],
+    icon_only: bool = False,
+    no_default_tags: bool = False,
+) -> set[str]:
+
+    if no_default_tags:
+        return set(user_tags)
+
     path = Path(resolve(filepath))
     return set(
         user_tags
