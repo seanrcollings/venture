@@ -1,4 +1,7 @@
 from typing import NamedTuple
+import re
+
+from . import util
 
 Icon = NamedTuple("Icon", [("code", str), ("color", str)])
 
@@ -7,6 +10,54 @@ default = Icon("\uf15b", color="#ffffff")
 
 def filetype_icon(filetype: str):
     return icon_map.get(file_icon_map.get(filetype, ""))
+
+
+def iconize(string: str, colored: bool = False) -> str:
+    """Replaces icon-strings with the actual escape codes
+    Expects the icon-strings to either be surrounded by colons (::)
+    or bars (||). Colons mean to replace it with just the icon escape code.
+    Bars mean to replace it with the icon, plus the longer name
+
+    :param string: string to substitute icon-strings
+    :param colored: whether ot not to return a
+        pango-span with the accompanying icon color
+
+    `iconize(':py:') -> '\\uf81f'`
+    `iconize('|py|') -> '\\uf81f python'`
+    """
+    icon_regex = re.compile(r":([\w-]*):")
+    filetypes = icon_regex.findall(string)
+    replaces = string
+
+    for filetype in filetypes:
+        icon = filetype_icon(filetype)
+        if icon:
+            formatted = (
+                util.pango_span(icon.code, color=icon.color) if colored else icon.code
+            )
+        else:
+            formatted = filetype
+
+        replaces = re.sub(f":{filetype}:", formatted, replaces)
+
+    long_name_regex = re.compile(r"\|([\w-]*)\|")
+    filetypes = long_name_regex.findall(string)
+
+    for filetype in filetypes:
+        icon = filetype_icon(filetype)
+        long_name = file_icon_map.get(filetype)
+        if icon and long_name:
+            formatted = (
+                (util.pango_span(icon.code, color=icon.color) if colored else icon.code)
+                + " "
+                + long_name
+            )
+        else:
+            formatted = filetype
+
+        replaces = re.sub(fr"\|{filetype}\|", formatted, replaces)
+
+    return replaces
 
 
 # Uses Nerd Fonts Icons

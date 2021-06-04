@@ -121,9 +121,6 @@ def add(
 
     --no-default-tags    Disable the generation of default tags for this
                          quick-launch entry
-    --disable-short-tags Disables Venture's tag shorthand matching feature.
-                         use this if you want your tags to always look exactly
-                         as you input them
     """
 
     all_tags = get_tags(
