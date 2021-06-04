@@ -91,7 +91,8 @@ class QL(DmenuLike):
 
     def format_items(self, items):
         return {
-            f"{item.get('icon', ''):<2} {name}{self.tag_sep}{self.format_tags(item)}": name
+            f"{iconize(item.get('icon', ''), self.config.color_icons):<2} "
+            f"{name}{self.tag_sep}{self.format_tags(item)}": name
             for name, item in items.items()
         }
 
