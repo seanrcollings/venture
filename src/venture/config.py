@@ -36,6 +36,7 @@ class Config(BaseModel):
     ui: str = "rofi"
     browse: BrowseConfig = BrowseConfig()
     quicklaunch: QuickLaunchConfig = QuickLaunchConfig()
+    color_icons: bool = True
 
     def get_exec(self, open_context: OpenContext = None):
         if open_context is OpenContext.BROWSE:

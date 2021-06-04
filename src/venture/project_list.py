@@ -84,7 +84,9 @@ class Project:
             return None
 
         icon = filetype_icon(filetype.lstrip(".")) or default
-        return util.pango_span(icon.code, color=icon.color)
+        if config.color_icons:
+            return util.pango_span(icon.code, color=icon.color)
+        return icon.code
 
 
 class ProjectList:

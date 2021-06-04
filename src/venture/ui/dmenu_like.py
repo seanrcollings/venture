@@ -75,7 +75,7 @@ class QL(DmenuLike):
     tag_sep: str = "\n"
 
     def format_tags(self, item):
-        tags = [iconize(tag, True) for tag in item.get("tags", [])]
+        tags = [iconize(tag, self.config.color_icons) for tag in item.get("tags", [])]
 
         all_tags = (
             [f"{icon_map.get('directory')}  {item['path']}"] + tags
