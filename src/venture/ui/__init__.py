@@ -1,8 +1,9 @@
 from typing import Type
 from arc import ExecutionError
 
+from ..types import OpenContext
 from .dmenu_like import Dmenu, Rofi, RofiQL, Wofi, WofiQL
-from .ui_provider import UIProvider, OpenContext
+from .ui_provider import UIProvider
 
 
 ProviderType = dict[str, dict[OpenContext, Type[UIProvider]]]
