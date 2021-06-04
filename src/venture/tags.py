@@ -34,13 +34,14 @@ def get_icon_tag(suffix):
 
 def get_tags(filepath: str, user_tags: list[str], no_default_tags=False):
     filepath = resolve(filepath)
-    if no_default_tags:
-        return set(user_tags)
 
     path = Path(filepath)
     tags = set(
         map(lambda tag: get_icon_tag(tag) if tag in file_tags else tag, user_tags)
     )
+
+    if no_default_tags:
+        return tags
 
     extension = path.suffix.lstrip(".")
 
