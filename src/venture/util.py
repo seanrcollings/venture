@@ -5,7 +5,7 @@ import ujson
 
 
 def resolve(path: str) -> str:
-    return os.path.expanduser(path)
+    return os.path.abspath(os.path.expanduser(path))
 
 
 def pango_span(content, **kwargs):

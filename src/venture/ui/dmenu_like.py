@@ -3,7 +3,7 @@ from typing import Iterable
 import subprocess
 from .ui_provider import UIProvider
 from .. import util
-from ..icons import icon
+from ..icons import icon_map, iconize
 
 
 class DmenuLike(UIProvider):
@@ -74,11 +74,13 @@ class Rofi(DmenuLike):
 class QL(DmenuLike):
     tag_sep: str = "\n"
 
-    def tags(self, item):
+    def format_tags(self, item):
+        tags = [iconize(tag, self.config.color_icons) for tag in item.get("tags", [])]
+
         all_tags = (
-            [f"{icon('directory')}  {item['path']}"] + item.get("tags", [])
+            [f"{icon_map.get('directory')}  {item['path']}"] + tags
             if self.config.quicklaunch.show_filepath
-            else item.get("tags", [])
+            else tags
         )
         return util.pango_span(
             ", ".join(all_tags),
@@ -89,7 +91,8 @@ class QL(DmenuLike):
 
     def format_items(self, items):
         return {
-            f"{item.get('icon', ''):<2} {name}{self.tag_sep}{self.tags(item)}": name
+            f"{iconize(item.get('icon', ''), self.config.color_icons):<2} "
+            f"{name}{self.tag_sep}{self.format_tags(item)}": name
             for name, item in items.items()
         }
 
