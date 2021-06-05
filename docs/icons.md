@@ -18,7 +18,7 @@ Optionally, icons can also be rendered using bars instead of colons. The only di
 |py| cool-tag
 ```
 
-Would result in a python logo, the word "python" and then cool-tag. Essentially, the bar syntax is shorhand for
+Would result in a python logo, the word "python" and then cool-tag. Essentially, the bar syntax is shorthand for
 ```
 :py: python cool-tag
 ```
