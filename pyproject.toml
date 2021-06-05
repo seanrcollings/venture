@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "venture"
-version = "1.4.0"
+version = "2.0b1"
 description = "Rofi / Wofi based project selector"
 authors = ["Sean Collings <seanrcollings@gmail.com>"]
 license = "MIT"

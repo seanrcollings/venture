@@ -7,7 +7,7 @@ import yaml
 
 # Intiialzie the CLI first, so
 # that the arc_logger gets properly setup
-cli = CLI(name="venture", version="1.4.0")
+cli = CLI(name="venture", version="2.0b1")
 
 # pylint: disable=wrong-import-position
 from .project_list import ProjectList
