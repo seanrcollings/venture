@@ -1,15 +1,26 @@
 from __future__ import annotations
+import shutil
 from typing import Iterable
 import subprocess
-from .ui_provider import UIProvider
+from arc.color import fg, effects
+from .ui_provider import UIProvider, UIError
 from .. import util
 
 
 class DmenuLike(UIProvider):
+    platform = "linux"
     command: str
     default_args: Iterable[str] = []
     argument_format: str
     seperator: str = "\n"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not shutil.which(self.command):
+            raise UIError(
+                f"Coult not find command {fg.YELLOW}"
+                f"{self.command}{effects.CLEAR}, try installing it?"
+            )
 
     def run(self):
         args = self.get_commandline_args()
@@ -71,9 +82,9 @@ class Rofi(DmenuLike):
     argument_format = "-{name} {value}"
 
 
-def tags(item):
+def tags(item, joiner=", "):
     return util.pango_span(
-        ", ".join(item.get("tags", [])),
+        joiner.join(item.get("tags", [])),
         color="#9c9c9c",
         size="smaller",
         weight="light",
@@ -102,3 +113,9 @@ class WofiQL(Wofi):
             f"{item.get('icon', ''):<2} {name} {tags(item)}": name
             for name, item in items.items()
         }
+
+
+class Choose(DmenuLike):
+    platform = "darwin"
+    command = "choose"
+    argument_format = "--{name} {value}"
