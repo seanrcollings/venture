@@ -47,7 +47,6 @@ class Cache:
             f.write(ujson.dumps(data, ensure_ascii=False))
 
     @classmethod
-    @property
     def exists(cls):
         return os.path.isfile(cls.cache_path)
 

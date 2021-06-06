@@ -1,3 +1,4 @@
+import time
 import subprocess
 from typing import Any, Mapping
 from arc import CLI, ExecutionError, CommandType as ct
@@ -5,7 +6,7 @@ from arc.color import fg, effects
 from arc.utils import timer, logger
 import yaml
 
-# Intiialzie the CLI first, so
+# Initialize the CLI first, so
 # that the arc_logger gets properly setup
 cli = CLI(name="venture", version="2.0b1")
 
@@ -18,10 +19,13 @@ from .tags import get_tags
 from .config import config, Config, CONFIG_FILE
 from .types import OpenContext
 
+start = time.time()
+
 
 def pick(items: Mapping[str, T], pick_config: Config, open_context: OpenContext) -> T:
     provider_type = get_ui_provider(pick_config.ui, open_context)
     provider = provider_type(items, config)
+    logger.debug("Time to render: %s", time.time() - start)
     choice = provider.run()
     if not choice:
         raise ExecutionError("No Valid Option Picked")
@@ -38,7 +42,7 @@ def execute(path: str, open_context: OpenContext):
 
 @timer("Project Loading")
 def get_projects():
-    if util.Cache.exists and config.browse.use_cache:
+    if util.Cache.exists() and config.browse.use_cache:
         projects: dict[str, str] = util.Cache.read()
     else:
         projects = ProjectList(config.browse.entries).projects
@@ -69,7 +73,7 @@ def run():
 @cli.command()
 def dump(force: bool = False):
     """Dump Default Config to ~/.config/venture.yaml if it does not exist"""
-    if config.exists and not force:
+    if config.exists() and not force:
         raise ExecutionError(
             "Configuration already exists. Run again with --force to overwrite"
         )
@@ -193,7 +197,7 @@ def cache(enable: bool = False, disable: bool = False):
     else:
         state = fg.GREEN + "enabled" if config.browse.use_cache else fg.RED + "disabled"
         print(f"Cache is {state}{effects.CLEAR}")
-        print("Cache is present" if util.Cache.exists else "Cache empty")
+        print("Cache is present" if util.Cache.exists() else "Cache empty")
 
 
 @cache.subcommand()
