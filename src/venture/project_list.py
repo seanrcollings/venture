@@ -1,161 +1,117 @@
-from typing import Dict, Optional
+from typing import TypedDict
 from pathlib import Path
 import functools
 import os
 
-from .types import DirectorySchema
+from arc.color import fg, effects
+from .types import DirectorySchema, BaseSub
 from .config import config
 from .icons import default, filetype_icon
 from . import util
 
 GLOB = "/*"
-EXCLUDED_DIRS = [
-    "node_modules",
-    ".git",
-]
-
 browse = config.browse
 
 
-class Project:
-    """OO Representation of a project directory
+class BrowseItem(TypedDict):
+    path: str
+    icon: str
 
-    `self.specificity` will change the amount of the full path shown.
 
-    path: `/home/sean/sourcecode/rust`
-    - specificity 1 => rust
-    - specificity 2 => sourcecode/rust
-    - specificity 3 => sean/sourcecode/rust
+class PathError(Exception):
     ...
 
-    If a prefix path is provided, the initial specificity is
-    is equal to the number of path components in the path and not in
-    the prefix
 
-    path: `/home/sean/sourcecode/rust`
-    - prefix: `/home/sean/sourcecode` => rust
-    - prefix: `/home/sean` => sourcecode/rust
-    ...
-    """
+class BrowseList:
+    def __init__(self, entries: DirectorySchema):
+        self.entries = entries
+        self.items: dict[str, BrowseItem] = {}
 
-    def __init__(self, path: str, prefix: Optional[str]):
-        self.path: Path = Path(path).expanduser().resolve()
-        self.fullpath = str(self.path)
-        self.icon: Optional[str] = (
-            self.get_icon("directory")
-            if self.path.is_dir()
-            else self.get_icon(self.path.suffix)
-        )
-        self.specificity = 1
+    def discover(self):
+        for entry in self.entries:
+            if isinstance(entry, str):
+                # pylint: disable=no-value-for-parameter
+                self.handle_single_path(entry)
+            elif isinstance(entry, dict):
+                self.handle_hierarchy(entry)
 
-        if prefix:
-            # breakpoint()
-            self.specificity = len(
-                str(self.path).removeprefix(prefix).lstrip("/").split("/")
-            )
+    def handle_single_path(self, directory: str, prefix: str = None):
+        directory = util.resolve(directory)
+        prefix = prefix or directory
+        path = Path(directory)
 
-    @property
-    def name(self):
-        parts = self.path.parts
-        start = len(parts) - (self.specificity)
-        start = 0 if start < 0 else start
-        name = "/".join(parts[start:])
+        if not path.exists():
+            raise PathError(f"{path} is not a valid file or directory")
 
-        # The first element of self.path.parts is a / instead
-        # of an empty string like in my implementation, which may cause some
-        # issues if we end up showing the entire string, so we just set it to ""
-        if start == 0:
-            name = name[1:]
+        if path.as_posix().endswith(GLOB):
+            return self.handle_glob(path)
 
-        return name
+        if path.is_file():
+            self.add_entry(path, prefix)
 
-    def __str__(self):
-        return f"{self.icon + '  ' if self.icon else ''}{self.name}"
+        elif path.is_dir():
+            for sub in path.iterdir():
+                self.add_entry(sub, prefix)
 
-    def __repr__(self):
-        return f"<Project {self.path}>"
+    def handle_hierarchy(self, hierarchy: BaseSub):
+        base = hierarchy["base"]
+        subs = hierarchy["subs"]
+
+        paths = [f"{base}/{sub.lstrip('/')}" for sub in subs]
+
+        for path in os.listdir(base):
+            abs_path = Path(base) / path
+            if (abs_path.as_posix() not in paths) or browse.include_parent_folder:
+                self.add_entry(abs_path, base)
+
+        for path in paths:
+            self.handle_single_path(path, base)
+
+    def handle_glob(self, globbed_path: Path):
+        ...
+
+    def add_entry(self, path: Path, prefix: str):
+        name = self.get_unique_path(path, prefix)
+        if path.is_file():
+            icon = self.get_icon(path.suffix)
+        else:
+            icon = self.get_icon("directory")
+
+        self.items[name] = {
+            "path": path.as_posix(),
+            "icon": icon,
+        }
+
+    def get_unique_path(self, path: Path, prefix: str):
+        string = path.as_posix().removeprefix(prefix).lstrip("/")
+
+        # Generates the shortest path that is unique
+        # given defined entry points
+        parts_len = len(path.parts) - 1
+        selection_start = parts_len - 1
+        while string in self.items:
+            string = "/".join(path.parts[selection_start:parts_len]) + "/" + string
+
+            if selection_start <= 0:
+                raise PathError(
+                    f"Was unable to create a unique name for {fg.YELLOW}{path}{effects.CLEAR} "
+                    "this is likely because multiple entries contain the given path"
+                )
+
+            if string in self.items:
+                selection_start -= 1
+
+        return string
 
     @staticmethod
     @functools.lru_cache()
-    def get_icon(filetype: str) -> Optional[str]:
+    def get_icon(filetype: str) -> str:
         """Returns the icon associated with a specific file type,
         returns none if config.show_icons is set to False"""
         if not browse.show_icons:
-            return None
+            return ""
 
         icon = filetype_icon(filetype.lstrip(".")) or default
         if config.color_icons:
             return util.pango_span(icon.code, color=icon.color)
         return icon.code
-
-
-class ProjectList:
-    def __init__(self, directories: DirectorySchema):
-        self.dirs = directories
-        self.projects: Dict[str, str] = {}
-
-        self.handle_directories()
-
-    def handle_directories(self):
-        for directory in self.dirs:
-            if directory in EXCLUDED_DIRS:
-                continue
-
-            if isinstance(directory, str):
-                self.projects |= {
-                    str(project): project.fullpath
-                    for project in self.get_projects(directory)
-                }
-            elif isinstance(directory, dict):
-                self.handle_nested_dirs(**directory)
-
-    def handle_nested_dirs(self, base: str, subs: list[str]):
-        """handle a base directory and it's sub-dirs"""
-        directories = [f"{base}/{sub.lstrip('/')}" for sub in subs]
-        # if browse.include_parent_folder:
-        directories.append(base)
-
-        for directory in directories:
-            self.projects |= {
-                str(project): project.fullpath
-                for project in self.get_projects(directory, base)
-            }
-
-    def get_projects(self, directory: str, prefix: Optional[str] = None):
-        """Gets all the projects / files from the specified directory
-        appends icons to each path if `config['show_icons']` is `True`
-        """
-        directory = util.resolve(directory)
-        prefix = prefix or directory
-
-        if directory.endswith(GLOB):
-            self.handle_glob(directory)
-            return
-
-        for obj in os.scandir(directory):
-            path = Path(obj.path)
-            if (path.name.startswith(".") and not browse.show_hidden) or (
-                path.is_file() and not browse.show_files
-            ):
-                continue
-
-            project = Project(str(path), prefix)
-            while str(project) in self.projects:
-                # Handle this going on for too long?
-                project.specificity += 1
-
-            yield project
-
-    def handle_glob(self, directory: str):
-        directory = directory.rstrip(GLOB)
-        dirs = [
-            obj.path.removeprefix(directory)
-            for obj in os.scandir(directory)
-            if obj.is_dir()
-            and (True if browse.show_hidden else not obj.name.startswith("."))
-        ]
-
-        self.handle_nested_dirs(
-            directory,
-            dirs,
-        )

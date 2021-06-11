@@ -11,7 +11,7 @@ import yaml
 cli = CLI(name="venture", version="2.0b1")
 
 # pylint: disable=wrong-import-position
-from .project_list import ProjectList
+from .project_list import BrowseList
 from .ui import get_ui_provider
 from .ui.ui_provider import T
 from . import util
@@ -20,6 +20,8 @@ from .config import config, Config, CONFIG_FILE
 from .types import OpenContext
 
 start = time.time()
+
+DEBUG = True
 
 
 def pick(items: Mapping[str, T], pick_config: Config, open_context: OpenContext) -> T:
@@ -37,7 +39,8 @@ def execute(path: str, open_context: OpenContext):
     exec_str = config.get_exec(open_context)
     command = exec_str.format(path=util.resolve(path))
     logger.debug("Executing %s", command)
-    subprocess.run(command, check=True, shell=True)
+    if not DEBUG:
+        subprocess.run(command, check=True, shell=True)
 
 
 @timer("Project Loading")
@@ -45,11 +48,12 @@ def get_projects():
     if util.Cache.exists() and config.browse.use_cache:
         projects: dict[str, str] = util.Cache.read()
     else:
-        projects = ProjectList(config.browse.entries).projects
+        browser = BrowseList(config.browse.entries)
+        browser.discover()
         if config.browse.use_cache:
-            util.Cache.write(projects)
+            util.Cache.write(browser.items)
 
-    return projects
+    return browser.items
 
 
 @cli.base()
@@ -63,11 +67,15 @@ def run():
     if config.browse.show_quicklaunch:
         projects = {"\uf85b  QuickLaunch": quick_launch_choice, **projects}
 
-    choice: str = pick(projects, config, OpenContext.BROWSE)
-    if choice == quick_launch_choice:
-        cli(quick_launch_choice)
+    if DEBUG:
+        for key, value in projects.items():
+            print(f"{key:<20} : {value}")
     else:
-        execute(choice, OpenContext.BROWSE)
+        choice: str = pick(projects, config, OpenContext.BROWSE)
+        if choice == quick_launch_choice:
+            cli(quick_launch_choice)
+        else:
+            execute(choice, OpenContext.BROWSE)
 
 
 @cli.command()
