@@ -1,5 +1,6 @@
 # pylint: disable=inherit-non-class
-from typing import List, Union, Dict, TypedDict, Optional
+from __future__ import annotations
+from typing import List, Union, TypedDict, Optional
 from enum import Enum
 
 
@@ -8,7 +9,12 @@ class OpenContext(Enum):
     QUICK_LAUNCH = "QuickLaunch"
 
 
-DirectorySchema = List[Union[str, Dict[str, Union[str, List[str]]]]]
+class BaseSub(TypedDict):
+    base: str
+    subs: list[str]
+
+
+DirectorySchema = List[Union[str, BaseSub]]
 
 
 class QuickLaunchEntry(TypedDict):
