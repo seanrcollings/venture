@@ -6,7 +6,7 @@ import os
 from arc.color import fg, effects
 from .types import DirectorySchema, BaseSub
 from .config import config
-from .icons import default, filetype_icon
+from .icons import default, filetype_icon, Icon
 from . import util
 
 GLOB = "/*"
@@ -15,7 +15,7 @@ browse = config.browse
 
 class BrowseItem(TypedDict):
     path: str
-    icon: str
+    icon: Icon
 
 
 class PathError(Exception):
@@ -105,13 +105,6 @@ class BrowseList:
 
     @staticmethod
     @functools.lru_cache()
-    def get_icon(filetype: str) -> str:
-        """Returns the icon associated with a specific file type,
-        returns none if config.show_icons is set to False"""
-        if not browse.show_icons:
-            return ""
-
-        icon = filetype_icon(filetype.lstrip(".")) or default
-        if config.color_icons:
-            return util.pango_span(icon.code, color=icon.color)
-        return icon.code
+    def get_icon(filetype: str) -> Icon:
+        """Returns the icon associated with a specific file type"""
+        return filetype_icon(filetype.lstrip(".")) or default
