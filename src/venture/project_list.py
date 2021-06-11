@@ -4,12 +4,13 @@ import functools
 import os
 
 from arc.color import fg, effects
-from .types import DirectorySchema, BaseSub
+from .types import DirectorySchema
 from .config import config
 from .icons import default, filetype_icon, Icon
 from . import util
 
 GLOB = "/*"
+EXCLUDED_DIRS = (".git", "node_modules")
 browse = config.browse
 
 
@@ -33,18 +34,18 @@ class BrowseList:
                 # pylint: disable=no-value-for-parameter
                 self.handle_single_path(entry)
             elif isinstance(entry, dict):
-                self.handle_hierarchy(entry)
+                self.handle_hierarchy(entry["base"], entry["subs"])
 
     def handle_single_path(self, directory: str, prefix: str = None):
         directory = util.resolve(directory)
         prefix = prefix or directory
         path = Path(directory)
 
-        if not path.exists():
-            raise PathError(f"{path} is not a valid file or directory")
-
         if path.as_posix().endswith(GLOB):
             return self.handle_glob(path)
+
+        if not path.exists():
+            raise PathError(f"{path} is not a valid file or directory")
 
         if path.is_file():
             self.add_entry(path, prefix)
@@ -53,10 +54,8 @@ class BrowseList:
             for sub in path.iterdir():
                 self.add_entry(sub, prefix)
 
-    def handle_hierarchy(self, hierarchy: BaseSub):
-        base = hierarchy["base"]
-        subs = hierarchy["subs"]
-
+    def handle_hierarchy(self, base: str, subs: list[str]):
+        print(base, subs)
         paths = [f"{base}/{sub.lstrip('/')}" for sub in subs]
 
         for path in os.listdir(base):
@@ -68,9 +67,24 @@ class BrowseList:
             self.handle_single_path(path, base)
 
     def handle_glob(self, globbed_path: Path):
-        ...
+        path = Path(globbed_path.as_posix().removesuffix(GLOB))
+        path_str = path.as_posix()
+        subs = [
+            entry.as_posix().removeprefix(path_str).removeprefix("/")
+            for entry in path.iterdir()
+            if entry.is_dir()
+            and (True if browse.show_hidden else not entry.name.startswith("."))
+            and entry.name not in EXCLUDED_DIRS
+        ]
+
+        self.handle_hierarchy(path_str, subs)
 
     def add_entry(self, path: Path, prefix: str):
+        if (path.name.startswith(".") and not browse.show_hidden) or (
+            path.is_file() and not browse.show_files
+        ):
+            return
+
         name = self.get_unique_path(path, prefix)
         if path.is_file():
             icon = self.get_icon(path.suffix)
@@ -84,13 +98,16 @@ class BrowseList:
 
     def get_unique_path(self, path: Path, prefix: str):
         string = path.as_posix().removeprefix(prefix).lstrip("/")
+        prefix_path = Path(prefix)
 
         # Generates the shortest path that is unique
         # given defined entry points
-        parts_len = len(path.parts) - 1
+        parts_len = len(prefix_path.parts)
         selection_start = parts_len - 1
         while string in self.items:
-            string = "/".join(path.parts[selection_start:parts_len]) + "/" + string
+            string = (
+                "/".join(prefix_path.parts[selection_start:parts_len]) + "/" + string
+            )
 
             if selection_start <= 0:
                 raise PathError(
