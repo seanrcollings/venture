@@ -46,14 +46,15 @@ def execute(path: str, open_context: OpenContext):
 @timer("Project Loading")
 def get_projects():
     if util.Cache.exists() and config.browse.use_cache:
-        projects: dict[str, str] = util.Cache.read()
+        items: dict[str, str] = util.Cache.read()
     else:
         browser = BrowseList(config.browse.entries)
         browser.discover()
+        items = browser.items
         if config.browse.use_cache:
             util.Cache.write(browser.items)
 
-    return browser.items
+    return items
 
 
 @cli.base()

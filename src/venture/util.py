@@ -29,6 +29,8 @@ def catch(func):
 
 class Cache:
     cache_path = "/tmp/venture-cache"
+    meta: dict[str, str] = {}
+    data: dict[str, str] = {}
 
     class CacheError(Exception):
         ...
@@ -38,7 +40,9 @@ class Cache:
     def read(cls):
         with open(cls.cache_path, "r") as f:
             data = ujson.loads(f.read())
-            return data
+            cls.meta = data["meta"]
+            cls.data = data["data"]
+            return cls.data
 
     @classmethod
     @catch
@@ -49,17 +53,6 @@ class Cache:
     @classmethod
     def exists(cls):
         return os.path.isfile(cls.cache_path)
-
-
-class DictWrapper(dict):
-    def __str__(self):
-        return "\n".join(f"{key}: {value}" for key, value in self.items())
-
-    def __getattr__(self, attr):
-        return self[attr]
-
-    def __setattr__(self, attr, value):
-        self[attr] = value
 
 
 def confirm(message: str):
