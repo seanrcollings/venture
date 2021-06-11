@@ -55,7 +55,6 @@ class BrowseList:
                 self.add_entry(sub, prefix)
 
     def handle_hierarchy(self, base: str, subs: list[str]):
-        print(base, subs)
         paths = [f"{base}/{sub.lstrip('/')}" for sub in subs]
 
         for path in os.listdir(base):

@@ -11,7 +11,7 @@ import yaml
 cli = CLI(name="venture", version="2.0b1")
 
 # pylint: disable=wrong-import-position
-from .project_list import BrowseList
+from .browse_list import BrowseList
 from .ui import get_ui_provider
 from .ui.ui_provider import T
 from . import util
@@ -19,9 +19,9 @@ from .tags import get_tags
 from .config import config, Config, CONFIG_FILE
 from .types import OpenContext
 
-start = time.time()
-
 DEBUG = True
+cache = util.Cache(config)
+start = time.time()
 
 
 def pick(items: Mapping[str, T], pick_config: Config, open_context: OpenContext) -> T:
@@ -44,15 +44,17 @@ def execute(path: str, open_context: OpenContext):
 
 
 @timer("Project Loading")
-def get_projects():
-    if util.Cache.exists() and config.browse.use_cache:
-        items: dict[str, str] = util.Cache.read()
-    else:
-        browser = BrowseList(config.browse.entries)
-        browser.discover()
-        items = browser.items
-        if config.browse.use_cache:
-            util.Cache.write(browser.items)
+def get_items():
+    if cache.exists() and config.browse.use_cache:
+        items: dict[str, str] = cache.read()
+        if cache.valid():
+            return items
+
+    browser = BrowseList(config.browse.entries)
+    browser.discover()
+    items = browser.items
+    if config.browse.use_cache:
+        cache.write(browser.items)
 
     return items
 
@@ -61,7 +63,7 @@ def get_projects():
 @cli.command()
 def run():
     """Open the venture selection menu"""
-    projects = get_projects()
+    projects = get_items()
     # The method to add the QuickLaunch to the Menu
     # is a little hacky.
     quick_launch_choice = "quicklaunch"
@@ -174,8 +176,8 @@ def remove(name: str):
     print(f"{fg.GREEN}{name} Removed!{effects.CLEAR}")
 
 
-@cli.command()
-def cache(enable: bool = False, disable: bool = False):
+@cli.command("cache")
+def cache_command(enable: bool = False, disable: bool = False):
     """\
     Interact with the Venture cache. if no arguments are provided,
     will display the current state of the cache
@@ -209,11 +211,12 @@ def cache(enable: bool = False, disable: bool = False):
         print("Cache is present" if util.Cache.exists() else "Cache empty")
 
 
-@cache.subcommand()
+@cache_command.subcommand()
 def refresh():
     """Refreshes the contents of the cache"""
-    projects = ProjectList(config.browse.entries).projects
-    util.Cache.write(projects)
+    browse = BrowseList(config.browse.entries)
+    browse.discover()
+    cache.write(browse.items)
     print("Cache Refreshed")
 
 
