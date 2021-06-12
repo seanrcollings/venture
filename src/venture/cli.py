@@ -1,7 +1,7 @@
 from __future__ import annotations
 import time
 import subprocess
-from typing import Any, Mapping
+from typing import Any
 from arc import CLI, ExecutionError, CommandType as ct
 from arc.color import fg, effects
 from arc.utils import timer, logger
@@ -14,7 +14,7 @@ cli = CLI(name="venture", version="2.0b1")
 # pylint: disable=wrong-import-position
 from .browse_list import BrowseList, BrowseItem
 from .ui import get_ui_provider
-from .ui.ui_provider import T
+from .ui.ui_provider import T, V
 from . import util
 from .tags import get_tags
 from .config import config, Config, CONFIG_FILE
@@ -26,7 +26,7 @@ cache = util.Cache(config)
 start = time.time()
 
 
-def pick(items: Mapping[str, T], pick_config: Config, open_context: OpenContext) -> T:
+def pick(items: T, pick_config: Config, open_context: OpenContext) -> V:
     provider_type = get_ui_provider(pick_config.ui, open_context)
     provider = provider_type(items, config)
     logger.debug("Time to render: %s", time.time() - start)

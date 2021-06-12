@@ -93,6 +93,13 @@ class Rofi(DmenuLike):
 class QL(DmenuLike):
     tag_sep: str = "\n"
 
+    def format_items(self, items):
+        return {
+            f"{iconize(item.get('icon', ''), self.config.color_icons):<2} "
+            f"{name}{self.tag_sep}{self.format_tags(item)}": item
+            for name, item in items.items()
+        }
+
     def format_tags(self, item):
         tags = [iconize(tag, self.config.color_icons) for tag in item.get("tags", [])]
 
@@ -107,13 +114,6 @@ class QL(DmenuLike):
             size="smaller",
             weight="light",
         )
-
-    def format_items(self, items):
-        return {
-            f"{iconize(item.get('icon', ''), self.config.color_icons):<2} "
-            f"{name}{self.tag_sep}{self.format_tags(item)}": name
-            for name, item in items.items()
-        }
 
 
 class RofiQL(Rofi, QL):
