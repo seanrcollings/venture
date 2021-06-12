@@ -65,14 +65,15 @@ class DmenuLike(UIProvider[dict[str, BrowseItem], str]):
         choice = output.decode("utf-8").strip("\n")
         return choice
 
-    def get_icon(self, icon: Icon):
+    def get_icon(self, icon: Icon | list[str]):
         if not self.config.browse.show_icons:
             return ""
 
-        string = f"{icon.code:<2}"
+        code, color = icon
+        string = f"{code:<2}"
 
         if self.config.color_icons:
-            string = util.pango_span(string, color=icon.color)
+            string = util.pango_span(string, color=color)
 
         return string
 

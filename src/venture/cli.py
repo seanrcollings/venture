@@ -50,6 +50,7 @@ def get_items():
         if cache.valid():
             return items
 
+    print("hi")
     browser = BrowseList(config.browse.entries)
     browser.discover()
     items = browser.items
