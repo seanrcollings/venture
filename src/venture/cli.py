@@ -1,11 +1,12 @@
 from __future__ import annotations
 import time
 import subprocess
+import os
+import yaml
 from typing import Any
 from arc import CLI, ExecutionError, CommandType as ct
 from arc.color import fg, effects
 from arc.utils import timer, logger
-import yaml
 
 # Initialize the CLI first, so
 # that the arc_logger gets properly setup
@@ -148,6 +149,11 @@ def add(
     --icon-only          Automatic tag-generation will display icon-only rather
                          than icon + name
     """
+
+    if not os.path.exists(util.resolve(path)):
+        raise ExecutionError(
+            f"The path {fg.YELLOW}{path}{effects.CLEAR} {fg.RED}doesn't exist"
+        )
 
     all_tags = get_tags(
         path,
