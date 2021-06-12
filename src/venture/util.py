@@ -3,7 +3,6 @@ import functools
 from typing import Any
 
 from arc.utils import logger
-
 import ujson
 
 
@@ -31,7 +30,7 @@ def catch(func):
 
 
 class Cache:
-    cache_path = "/tmp/venture-cache"
+    cache_path = resolve("~/.cache/venture-cache")
 
     class CacheError(Exception):
         ...
@@ -44,11 +43,10 @@ class Cache:
     @catch
     def read(self):
         logger.debug("Reading %s", self.cache_path)
-        with open(self.cache_path, "r") as f:
-            data: dict = ujson.loads(f.read())
-            self.meta = data.get("meta", {})
-            self.data = data.get("data", {})
-            return self.data
+        data: dict = self.attempt_load()
+        self.meta = data.get("meta", {})
+        self.data = data.get("data", {})
+        return self.data
 
     @catch
     def write(self, data: dict):
@@ -58,6 +56,13 @@ class Cache:
         to_dump = {"data": self.data, "meta": self.meta}
         with open(self.cache_path, "w") as f:
             f.write(ujson.dumps(to_dump, ensure_ascii=False))
+
+    def attempt_load(self):
+        try:
+            with open(self.cache_path, "r") as f:
+                return ujson.loads(f.read())
+        except (ValueError, FileNotFoundError):
+            return {}
 
     def valid(self):
         return self.exists() and self.config.checksum == self.meta.get("checksum")
