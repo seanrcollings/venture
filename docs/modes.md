@@ -2,7 +2,7 @@
 Venture centers around two modes, Browse Mode and Quick Launch Mode
 
 # Browse Mode
-Browse mode is what you see when just execution `venture`. It reads in the paths listed in the `entries` in the browse section of the config file and generates an output of directories and files for the user to pick from.
+Browse mode is what you see when just executing `venture`. It reads in the paths listed in the `entries` in the browse section of the config file and generates an output of directories and files for the user to pick from.
 
 ## How to structures `entries`
 Imagine we have this file structure
