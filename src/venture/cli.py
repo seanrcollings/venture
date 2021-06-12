@@ -19,7 +19,7 @@ from .tags import get_tags
 from .config import config, Config, CONFIG_FILE
 from .types import OpenContext
 
-DEBUG = True
+DEBUG = False
 cache = util.Cache(config)
 start = time.time()
 
