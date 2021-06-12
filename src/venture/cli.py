@@ -1,6 +1,7 @@
+from __future__ import annotations
 import time
 import subprocess
-from typing import Any, Mapping
+from typing import Any
 from arc import CLI, ExecutionError, CommandType as ct
 from arc.color import fg, effects
 from arc.utils import timer, logger
@@ -11,18 +12,21 @@ import yaml
 cli = CLI(name="venture", version="2.0b1")
 
 # pylint: disable=wrong-import-position
-from .project_list import ProjectList
+from .browse_list import BrowseList, BrowseItem
 from .ui import get_ui_provider
-from .ui.ui_provider import T
+from .ui.ui_provider import T, V
 from . import util
 from .tags import get_tags
 from .config import config, Config, CONFIG_FILE
 from .types import OpenContext
+from .icons import icon_map
 
+DEBUG = False
+cache = util.Cache(config)
 start = time.time()
 
 
-def pick(items: Mapping[str, T], pick_config: Config, open_context: OpenContext) -> T:
+def pick(items: T, pick_config: Config, open_context: OpenContext) -> V:
     provider_type = get_ui_provider(pick_config.ui, open_context)
     provider = provider_type(items, config)
     logger.debug("Time to render: %s", time.time() - start)
@@ -37,33 +41,45 @@ def execute(path: str, open_context: OpenContext):
     exec_str = config.get_exec(open_context)
     command = exec_str.format(path=util.resolve(path))
     logger.debug("Executing %s", command)
-    subprocess.run(command, check=True, shell=True)
+    if not DEBUG:
+        subprocess.run(command, check=True, shell=True)
 
 
 @timer("Project Loading")
-def get_projects():
-    if util.Cache.exists() and config.browse.use_cache:
-        projects: dict[str, str] = util.Cache.read()
-    else:
-        projects = ProjectList(config.browse.entries).projects
-        if config.browse.use_cache:
-            util.Cache.write(projects)
+def get_items() -> dict[str, BrowseItem | dict]:
+    if cache.exists() and config.browse.use_cache:
+        items = cache.read()
+        if cache.valid():
+            return items
 
-    return projects
+    browser = BrowseList(config.browse.entries)
+    browser.discover()
+    items = browser.items
+    if config.browse.use_cache:
+        cache.write(browser.items)
+
+    return items
 
 
 @cli.base()
 @cli.command()
 def run():
     """Open the venture selection menu"""
-    projects = get_projects()
+    items = get_items()
     # The method to add the QuickLaunch to the Menu
     # is a little hacky.
     quick_launch_choice = "quicklaunch"
     if config.browse.show_quicklaunch:
-        projects = {"\uf85b  QuickLaunch": quick_launch_choice, **projects}
+        items = {
+            "QuickLaunch": {"path": quick_launch_choice, "icon": icon_map["hamburger"]},
+            **items,
+        }
 
-    choice: str = pick(projects, config, OpenContext.BROWSE)
+    if DEBUG:
+        for key, value in items.items():
+            print(f"{key:<20} : {value}")
+
+    choice: str = pick(items, config, OpenContext.BROWSE)
     if choice == quick_launch_choice:
         cli(quick_launch_choice)
     else:
@@ -165,8 +181,8 @@ def remove(name: str):
     print(f"{fg.GREEN}{name} Removed!{effects.CLEAR}")
 
 
-@cli.command()
-def cache(enable: bool = False, disable: bool = False):
+@cli.command("cache")
+def cache_command(enable: bool = False, disable: bool = False):
     """\
     Interact with the Venture cache. if no arguments are provided,
     will display the current state of the cache
@@ -195,16 +211,23 @@ def cache(enable: bool = False, disable: bool = False):
         print("Cache Disabled")
 
     else:
-        state = fg.GREEN + "enabled" if config.browse.use_cache else fg.RED + "disabled"
-        print(f"Cache is {state}{effects.CLEAR}")
-        print("Cache is present" if util.Cache.exists() else "Cache empty")
+        cache.read()
+        green = lambda string: fg.GREEN + string + effects.CLEAR
+        red = lambda string: fg.RED + string + effects.CLEAR
+        print(
+            "Cache is "
+            + (green("enabled") if config.browse.use_cache else red("disabled"))
+        )
+        print("Cache is " + (green("present") if cache.exists() else red("empty")))
+        print("Cache is " + (green("valid") if cache.valid() else red("invalid")))
 
 
-@cache.subcommand()
+@cache_command.subcommand()
 def refresh():
     """Refreshes the contents of the cache"""
-    projects = ProjectList(config.browse.entries).projects
-    util.Cache.write(projects)
+    browse = BrowseList(config.browse.entries)
+    browse.discover()
+    cache.write(browse.items)
     print("Cache Refreshed")
 
 

@@ -3,20 +3,27 @@ from typing import Iterable
 import subprocess
 from .ui_provider import UIProvider
 from .. import util
-from ..icons import icon_map, iconize
+from ..icons import icon_map, iconize, Icon
+from ..browse_list import BrowseItem
 
 
-class DmenuLike(UIProvider):
+class DmenuLike(UIProvider[dict[str, BrowseItem], str]):
     command: str
     default_args: Iterable[str] = []
     argument_format: str
     seperator: str = "\n"
 
-    def run(self):
+    def run(self) -> str | None:
         args = self.get_commandline_args()
         output = self.execute(args)
         parsed = self.parse_output(output)
-        return self.items.get(self._display_items.get(parsed))
+        return self._display_items.get(parsed)
+
+    def format_items(self, items: dict[str, BrowseItem]):
+        return {
+            f"{self.get_icon(item['icon'])} {name}": item["path"]
+            for name, item in items.items()
+        }
 
     def get_commandline_args(self) -> Iterable[str]:
         if not self.config.args:
@@ -45,18 +52,30 @@ class DmenuLike(UIProvider):
         and for it to recieve it's input as a newline-seperated
         list of strings from stdin.
         """
-        proc = subprocess.Popen(
+        with subprocess.Popen(
             [self.command, *self.default_args, *args],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
-        )
-        return proc.communicate(
-            bytes(self.seperator.join(self._display_items), "utf-8")
-        )[0]
+        ) as proc:
+            return proc.communicate(
+                bytes(self.seperator.join(self._display_items), "utf-8")
+            )[0]
 
     def parse_output(self, output: bytes):
         choice = output.decode("utf-8").strip("\n")
         return choice
+
+    def get_icon(self, icon: Icon | list[str]):
+        if not self.config.browse.show_icons:
+            return ""
+
+        code, color = icon
+        string = f"{code:<2}"
+
+        if self.config.color_icons:
+            string = util.pango_span(string, color=color)
+
+        return string
 
 
 class Dmenu(DmenuLike):
@@ -74,6 +93,13 @@ class Rofi(DmenuLike):
 class QL(DmenuLike):
     tag_sep: str = "\n"
 
+    def format_items(self, items):
+        return {
+            f"{iconize(item.get('icon', ''), self.config.color_icons):<2} "
+            f"{name}{self.tag_sep}{self.format_tags(item)}": item
+            for name, item in items.items()
+        }
+
     def format_tags(self, item):
         tags = [iconize(tag, self.config.color_icons) for tag in item.get("tags", [])]
 
@@ -88,13 +114,6 @@ class QL(DmenuLike):
             size="smaller",
             weight="light",
         )
-
-    def format_items(self, items):
-        return {
-            f"{iconize(item.get('icon', ''), self.config.color_icons):<2} "
-            f"{name}{self.tag_sep}{self.format_tags(item)}": name
-            for name, item in items.items()
-        }
 
 
 class RofiQL(Rofi, QL):

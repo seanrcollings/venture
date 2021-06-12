@@ -89,7 +89,7 @@ icon_map: dict[str, Icon] = {
     "database": Icon("\ue706", color="#ffca3d"),
     "mysql": Icon("\ue704", color="#15e86"),
     "postgresql": Icon("\ue76e", color="#31638c"),
-    "sqlite": Icon("\ue7c4", color="#13954"),
+    "sqlite": Icon("\ue7c4", color="#139542"),
     "csharp": Icon("\uf81a", color="#277bd"),
     "zip": Icon("\uf410", color="#afb42b"),
     "exe": Icon("\uf2d0", color="#e54d3a"),
@@ -243,6 +243,7 @@ icon_map: dict[str, Icon] = {
     "dir-secure": Icon("\uf74f", color="#f9a93c"),
     "dir-images": Icon("\uf74e", color="#2b9689"),
     "dir-environment": Icon("\uf74e", color="#66bb6a"),
+    "hamburger": Icon("\uf85b", color="#ffffff"),
 }
 
 # Each value should match with a name

@@ -1,5 +1,6 @@
 import os
-from typing import Any
+from typing import Any, Optional
+import hashlib
 
 import yaml
 from arc.utils import logger, timer
@@ -31,6 +32,7 @@ class QuickLaunchConfig(BaseModel):
 
 
 class Config(BaseModel):
+    checksum: Optional[str] = None
     exec: str = "code -r {path}"
     args: dict[str, str] = {}
     ui: str = "rofi"
@@ -57,15 +59,16 @@ class Config(BaseModel):
         with open(file) as f:
             contents = f.read()
 
+        checksum = hashlib.md5(contents.encode("utf-8")).hexdigest()
         data: dict[str, Any] = yaml.load(contents, Loader=yaml.CLoader)
-        return cls(**data)
+        return cls(checksum=checksum, **data)
 
     def write(self, default: bool = False):
         """Write Configuration to file in yaml format"""
         if default:
-            data = Config().dict()
+            data = Config().dict(exclude={"checksum"})
         else:
-            data = self.dict()
+            data = self.dict(exclude={"checksum"})
 
         with open(CONFIG_FILE, "w") as f:
             f.write(yaml.dump(data, Dumper=yaml.CDumper))

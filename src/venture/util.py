@@ -1,5 +1,8 @@
 import os
 import functools
+from typing import Any
+
+from arc.utils import logger
 
 import ujson
 
@@ -33,33 +36,35 @@ class Cache:
     class CacheError(Exception):
         ...
 
-    @classmethod
-    @catch
-    def read(cls):
-        with open(cls.cache_path, "r") as f:
-            data = ujson.loads(f.read())
-            return data
+    def __init__(self, config):
+        self.config = config
+        self.meta: dict[str, Any] = {}
+        self.data: dict[str, str] = {}
 
-    @classmethod
     @catch
-    def write(cls, data: dict):
-        with open(cls.cache_path, "w") as f:
-            f.write(ujson.dumps(data, ensure_ascii=False))
+    def read(self):
+        logger.debug("Reading %s", self.cache_path)
+        with open(self.cache_path, "r") as f:
+            data: dict = ujson.loads(f.read())
+            self.meta = data.get("meta", {})
+            self.data = data.get("data", {})
+            return self.data
+
+    @catch
+    def write(self, data: dict):
+        logger.debug("Writing %s", self.cache_path)
+        self.data |= data
+        self.meta["checksum"] = self.config.checksum
+        to_dump = {"data": self.data, "meta": self.meta}
+        with open(self.cache_path, "w") as f:
+            f.write(ujson.dumps(to_dump, ensure_ascii=False))
+
+    def valid(self):
+        return self.exists() and self.config.checksum == self.meta.get("checksum")
 
     @classmethod
     def exists(cls):
         return os.path.isfile(cls.cache_path)
-
-
-class DictWrapper(dict):
-    def __str__(self):
-        return "\n".join(f"{key}: {value}" for key, value in self.items())
-
-    def __getattr__(self, attr):
-        return self[attr]
-
-    def __setattr__(self, attr, value):
-        self[attr] = value
 
 
 def confirm(message: str):
