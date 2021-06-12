@@ -66,9 +66,9 @@ class Config(BaseModel):
     def write(self, default: bool = False):
         """Write Configuration to file in yaml format"""
         if default:
-            data = Config().dict()
+            data = Config().dict(exclude={"checksum"})
         else:
-            data = self.dict()
+            data = self.dict(exclude={"checksum"})
 
         with open(CONFIG_FILE, "w") as f:
             f.write(yaml.dump(data, Dumper=yaml.CDumper))

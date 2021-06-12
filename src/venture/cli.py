@@ -50,7 +50,6 @@ def get_items():
         if cache.valid():
             return items
 
-    print("hi")
     browser = BrowseList(config.browse.entries)
     browser.discover()
     items = browser.items
@@ -207,9 +206,15 @@ def cache_command(enable: bool = False, disable: bool = False):
         print("Cache Disabled")
 
     else:
-        state = fg.GREEN + "enabled" if config.browse.use_cache else fg.RED + "disabled"
-        print(f"Cache is {state}{effects.CLEAR}")
-        print("Cache is present" if util.Cache.exists() else "Cache empty")
+        cache.read()
+        green = lambda string: fg.GREEN + string + effects.CLEAR
+        red = lambda string: fg.RED + string + effects.CLEAR
+        print(
+            "Cache is "
+            + (green("enabled") if config.browse.use_cache else red("disabled"))
+        )
+        print("Cache is " + (green("present") if cache.exists() else red("empty")))
+        print("Cache is " + (green("valid") if cache.valid() else red("invalid")))
 
 
 @cache_command.subcommand()
