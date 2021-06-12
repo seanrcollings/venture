@@ -1,3 +1,4 @@
+from __future__ import annotations
 import time
 import subprocess
 from typing import Any, Mapping
@@ -11,13 +12,14 @@ import yaml
 cli = CLI(name="venture", version="2.0b1")
 
 # pylint: disable=wrong-import-position
-from .browse_list import BrowseList
+from .browse_list import BrowseList, BrowseItem
 from .ui import get_ui_provider
 from .ui.ui_provider import T
 from . import util
 from .tags import get_tags
 from .config import config, Config, CONFIG_FILE
 from .types import OpenContext
+from .icons import icon_map
 
 DEBUG = False
 cache = util.Cache(config)
@@ -44,9 +46,9 @@ def execute(path: str, open_context: OpenContext):
 
 
 @timer("Project Loading")
-def get_items():
+def get_items() -> dict[str, BrowseItem | dict]:
     if cache.exists() and config.browse.use_cache:
-        items: dict[str, str] = cache.read()
+        items = cache.read()
         if cache.valid():
             return items
 
@@ -63,18 +65,21 @@ def get_items():
 @cli.command()
 def run():
     """Open the venture selection menu"""
-    projects = get_items()
+    items = get_items()
     # The method to add the QuickLaunch to the Menu
     # is a little hacky.
     quick_launch_choice = "quicklaunch"
     if config.browse.show_quicklaunch:
-        projects = {"\uf85b  QuickLaunch": quick_launch_choice, **projects}
+        items = {
+            "QuickLaunch": {"path": quick_launch_choice, "icon": icon_map["hamburger"]},
+            **items,
+        }
 
     if DEBUG:
-        for key, value in projects.items():
+        for key, value in items.items():
             print(f"{key:<20} : {value}")
 
-    choice: str = pick(projects, config, OpenContext.BROWSE)
+    choice: str = pick(items, config, OpenContext.BROWSE)
     if choice == quick_launch_choice:
         cli(quick_launch_choice)
     else:

@@ -243,6 +243,7 @@ icon_map: dict[str, Icon] = {
     "dir-secure": Icon("\uf74f", color="#f9a93c"),
     "dir-images": Icon("\uf74e", color="#2b9689"),
     "dir-environment": Icon("\uf74e", color="#66bb6a"),
+    "hamburger": Icon("\uf85b", color="#ffffff"),
 }
 
 # Each value should match with a name
