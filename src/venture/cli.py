@@ -73,12 +73,12 @@ def run():
     if DEBUG:
         for key, value in projects.items():
             print(f"{key:<20} : {value}")
+
+    choice: str = pick(projects, config, OpenContext.BROWSE)
+    if choice == quick_launch_choice:
+        cli(quick_launch_choice)
     else:
-        choice: str = pick(projects, config, OpenContext.BROWSE)
-        if choice == quick_launch_choice:
-            cli(quick_launch_choice)
-        else:
-            execute(choice, OpenContext.BROWSE)
+        execute(choice, OpenContext.BROWSE)
 
 
 @cli.command()
