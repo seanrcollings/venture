@@ -9,7 +9,7 @@ import yaml
 
 # Initialize the CLI first, so
 # that the arc_logger gets properly setup
-cli = CLI(name="venture", version="2.0b1")
+cli = CLI(name="venture", version="2.0b2")
 
 # pylint: disable=wrong-import-position
 from .browse_list import BrowseList, BrowseItem
