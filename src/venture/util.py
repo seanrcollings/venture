@@ -1,6 +1,7 @@
 import os
 import functools
 from typing import Any
+from contextlib import contextmanager
 
 from arc.utils import logger
 import ujson
@@ -83,3 +84,23 @@ def confirm(message: str):
         if user_input in result:
             return result[user_input]
         print("Not understood, please type 'y' or 'n'")
+
+
+@contextmanager
+def safe_write(file_name: str):
+    """Save the contents of the file into memory, then
+    yield the file object. If an error occurs, writes the contents
+    back into the file.
+    """
+    with open(file_name, "r") as f:
+        contents = f.read()
+
+    file = open(file_name, "w")
+
+    try:
+        yield file
+    except:
+        file.write(contents)
+        raise
+    finally:
+        file.close()

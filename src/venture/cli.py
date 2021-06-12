@@ -2,8 +2,8 @@ from __future__ import annotations
 import time
 import subprocess
 import os
-import yaml
 from typing import Any
+import yaml
 from arc import CLI, ExecutionError, CommandType as ct
 from arc.color import fg, effects
 from arc.utils import timer, logger

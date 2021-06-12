@@ -70,7 +70,7 @@ class Config(BaseModel):
         else:
             data = self.dict(exclude={"checksum"})
 
-        with open(CONFIG_FILE, "w") as f:
+        with util.safe_write(CONFIG_FILE) as f:
             f.write(yaml.dump(data, Dumper=yaml.CDumper))
 
     @staticmethod
