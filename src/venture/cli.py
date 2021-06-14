@@ -10,7 +10,7 @@ from arc.utils import timer, logger
 
 # Initialize the CLI first, so
 # that the arc_logger gets properly setup
-cli = CLI(name="venture", version="2.0.0")
+cli = CLI(name="venture", version="2.0.1")
 
 # pylint: disable=wrong-import-position
 from .browse_list import BrowseList, BrowseItem

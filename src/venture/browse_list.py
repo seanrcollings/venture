@@ -42,12 +42,12 @@ class BrowseList:
         path = Path(directory)
 
         if path.as_posix().endswith(GLOB):
-            return self.handle_glob(path)
+            self.handle_glob(path)
 
-        if not path.exists():
+        elif not path.exists():
             raise PathError(f"{path} is not a valid file or directory")
 
-        if path.is_file():
+        elif path.is_file():
             self.add_entry(path, prefix)
 
         elif path.is_dir():
@@ -55,11 +55,16 @@ class BrowseList:
                 self.add_entry(sub, prefix)
 
     def handle_hierarchy(self, base: str, subs: list[str]):
-        paths = [f"{base}/{sub.lstrip('/')}" for sub in subs]
+        paths = [f"{base}/{sub.strip('/')}" for sub in subs]
+        # Quick hack to fix globbed paths not getting
+        # matched in the below if
+        removed_globs = [path.rstrip(GLOB) for path in paths]
 
         for path in os.listdir(base):
             abs_path = Path(base) / path
-            if (abs_path.as_posix() not in paths) or browse.include_parent_folder:
+            if (
+                abs_path.as_posix() not in removed_globs
+            ) or browse.include_parent_folder:
                 self.add_entry(abs_path, base)
 
         for path in paths:
@@ -71,8 +76,7 @@ class BrowseList:
         subs = [
             entry.as_posix().removeprefix(path_str).removeprefix("/")
             for entry in path.iterdir()
-            if entry.is_dir()
-            and (True if browse.show_hidden else not entry.name.startswith("."))
+            if (browse.show_hidden or not entry.name.startswith("."))
             and entry.name not in EXCLUDED_DIRS
         ]
 
