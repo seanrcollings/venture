@@ -104,7 +104,7 @@ class QL(DmenuLike):
         tags = [iconize(tag, self.config.color_icons) for tag in item.get("tags", [])]
 
         all_tags = (
-            [f"{icon_map.get('directory')}  {item['path']}"] + tags
+            [f"{icon_map.get('directory').code}  {item['path']}"] + tags
             if self.config.quicklaunch.show_filepath
             else tags
         )
