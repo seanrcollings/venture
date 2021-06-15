@@ -33,6 +33,7 @@ def get_tags(
     if no_default_tags:
         return set(user_tags)
 
+
     path = Path(resolve(filepath))
     return set(
         user_tags
