@@ -1,85 +1,116 @@
-from typing import Any
 import os
-import yaml
-from arc.utils import timer, logger
+from typing import Any, Optional
+import hashlib
 
-from .types import DirectorySchema, QuickLaunchSchema
+import yaml
+from arc.utils import logger, timer
+from pydantic import BaseModel
+
+from .types import DirectorySchema, QuickLaunchEntry
 from . import util
+from .types import OpenContext
+
 
 CONFIG_FILE = os.getenv("VENTURE_CONFIG") or util.resolve("~/.config/venture.yaml")
 
 
-class Config:
-    directories: DirectorySchema = ["~"]
-    exec: str = "code -r {path}"
-    ui_provider: str = "rofi"
-    show_icons: bool = True
-    show_hidden: bool = False
-    show_files: bool = True
-    include_parent_folder: bool = False
-    quicklaunch: QuickLaunchSchema = {}
+class BrowseConfig(BaseModel):
+    exec: str = ""
     use_cache: bool = True
-    quick_launch_in_browse: bool = False
+    show_files: bool = True
+    show_hidden: bool = False
+    show_icons: bool = True
+    include_parent_folder: bool = True
+    entries: DirectorySchema = ["~"]
+    show_quicklaunch: bool = False
 
-    def get(self, item, default=None):
-        return getattr(self, item, default)
 
-    @property
-    def exists(self):
-        return os.path.exists(CONFIG_FILE)
+class QuickLaunchConfig(BaseModel):
+    exec: str = ""
+    show_filepath: bool = False
+    entries: dict[str, QuickLaunchEntry] = {}
 
-    def dict(self):
-        return dict(
-            {
-                prop: getattr(self, prop)
-                for prop in dir(self)
-                if not prop.startswith("_")
-                and not callable(getattr(self, prop))
-                and not prop == "exists"
-            }
-        )
 
-    def write(self):
-        with open(CONFIG_FILE, "w") as f:
-            f.write(self.dump())
+class Config(BaseModel):
+    checksum: Optional[str] = None
+    exec: str = "code -r {path}"
+    args: dict[str, str] = {}
+    ui: str = "rofi"
+    browse: BrowseConfig = BrowseConfig()
+    quicklaunch: QuickLaunchConfig = QuickLaunchConfig()
+    color_icons: bool = True
 
-    def dump(self):
-        return yaml.dump(
-            self.dict(),
-            Dumper=yaml.CDumper,
-        )
+    def get_exec(self, open_context: OpenContext = None):
+        if open_context is OpenContext.BROWSE:
+            exec_str = self.browse.exec
+        elif open_context is OpenContext.QUICK_LAUNCH:
+            exec_str = self.quicklaunch.exec
+        else:
+            return self.exec
+
+        if not exec_str:
+            return self.exec
+
+        return exec_str
 
     @classmethod
     @timer("Loading Config")
     def from_file(cls, file):
-        file = open(file)
-        contents = file.read()
-        file.close()
+        with open(file) as f:
+            contents = f.read()
+
+        checksum = hashlib.md5(contents.encode("utf-8")).hexdigest()
         data: dict[str, Any] = yaml.load(contents, Loader=yaml.CLoader)
+        return cls(checksum=checksum, **data)
 
-        obj = cls()
-        if not data:
-            return obj
+    def write(self, default: bool = False):
+        """Write Configuration to file in yaml format"""
+        if default:
+            data = Config().dict(exclude={"checksum"})
+        else:
+            data = self.dict(exclude={"checksum"})
 
-        for key, value in data.items():
-            if key == "ui_provider" and value not in dir(obj):
-                setattr(obj, value, {})
+        with util.safe_write(CONFIG_FILE) as f:
+            f.write(yaml.dump(data, Dumper=yaml.CDumper))
 
-            setattr(obj, key, value)
-
-        return obj
+    @staticmethod
+    def exists() -> bool:
+        return os.path.exists(CONFIG_FILE)
 
     @classmethod
-    def dump_default(cls):
-        return yaml.dump(
-            Config.dict(Config),
-            Dumper=yaml.CDumper,
+    def update_config(cls, data: dict[str, Any]) -> "Config":
+        """Given the old config data structure, updates it to match the new design"""
+        default = cls()
+        return cls(
+            **{
+                "ui": data.get("ui_provider", default.ui),
+                "args": data.get(data.get("ui_provider", default.ui), {}),
+                "exec": data.get("exec", default.exec),
+                "browse": {
+                    "exec": default.browse.exec,
+                    "use_cache": data.get("use_cache", default.browse.use_cache),
+                    "show_files": data.get("show_files", default.browse.show_files),
+                    "show_hidden": data.get("show_hidden", default.browse.show_hidden),
+                    "show_icons": data.get("show_icons", default.browse.show_icons),
+                    "include_parent_folder": data.get(
+                        "include_parent_folder", default.browse.include_parent_folder
+                    ),
+                    "show_quicklaunch": data.get(
+                        "show_quicklaunch_in_browse", default.browse.show_quicklaunch
+                    ),
+                    "entries": data.get("directories", default.browse.entries),
+                },
+                "quicklaunch": {
+                    "exec": default.quicklaunch.exec,
+                    "entries": data.get("quicklaunch", default.quicklaunch.entries),
+                },
+            }
         )
 
 
 if os.path.isfile(CONFIG_FILE):
     logger.debug("Loading %s", CONFIG_FILE)
-    config = Config.from_file(CONFIG_FILE)
+    config: Config = Config.from_file(CONFIG_FILE)
 else:
     logger.debug("Config File not found, loading defaults")
     config = Config()

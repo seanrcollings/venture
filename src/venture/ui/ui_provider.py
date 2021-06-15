@@ -1,34 +1,30 @@
 from __future__ import annotations
-from typing import Mapping, Any, TypeVar
-from enum import Enum
+from typing import Mapping, Any, TypeVar, Generic
 from abc import ABC, abstractmethod
 
 from ..config import Config
 
+
 T = TypeVar("T")
+V = TypeVar("V")
 
 
-class OpenContext(Enum):
-    DEFAULT = "Default"
-    QUICK_LAUNCH = "QuickLaunch"
-
-
-Items = Mapping[str, T]
-
-
-class UIProvider(ABC):
-    def __init__(self, items: Items, config: Config):
+class UIProvider(Generic[T, V], ABC):
+    def __init__(self, items: T, config: Config):
         self.items = items
         self.config = config
         self._display_items = self.format_items(items)
 
     @abstractmethod
-    def run(self) -> T | None:
+    def run(self) -> V | None:
         """Run the UI Interface. Return the selected value"""
 
-    def format_items(self, items: Items) -> Mapping[str, str]:
-        """Format the input items"""
-        return {key: key for key in items}
+    def format_items(self, items: T) -> Mapping[str, str]:
+        """Format the input items into a dictionary
+        where the key will be displayed in the UI
+        and the value should be returned to the caller
+        """
+        return {key: key for key in items}  # type: ignore
 
     def parse_output(self, output: Any) -> str:
         """Called post-execution, used to do any
