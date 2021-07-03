@@ -3,7 +3,7 @@ import functools
 from typing import Any
 from contextlib import contextmanager
 
-from arc.utils import logger
+from arc.logging import logger
 import ujson
 
 

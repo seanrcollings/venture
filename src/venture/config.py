@@ -3,7 +3,8 @@ from typing import Any, Optional
 import hashlib
 
 import yaml
-from arc.utils import logger, timer
+from arc.utils import timer
+from arc.logging import logger
 from pydantic import BaseModel
 
 from .types import DirectorySchema, QuickLaunchEntry

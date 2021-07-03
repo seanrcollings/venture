@@ -4,9 +4,10 @@ import subprocess
 import os
 from typing import Any
 import yaml
-from arc import CLI, ExecutionError, CommandType as ct
+from arc import CLI, ExecutionError, ParsingMethod as pm
 from arc.color import fg, effects
-from arc.utils import timer, logger
+from arc.utils import timer
+from arc.logging import logger
 
 # Initialize the CLI first, so
 # that the arc_logger gets properly setup
@@ -172,7 +173,7 @@ def add(
     print(f"{fg.GREEN}{name} Added!{effects.CLEAR}")
 
 
-@quicklaunch.subcommand(command_type=ct.POSITIONAL)
+@quicklaunch.subcommand(parsing_method=pm.POSITIONAL)
 def remove(name: str):
     """\
     Remove a quick-launch entry
