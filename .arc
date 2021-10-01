@@ -1,1 +1,2 @@
-loglevel=10
+mode=development
+parse_argument_help=True

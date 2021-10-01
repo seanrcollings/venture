@@ -2,9 +2,11 @@ import os
 import functools
 from typing import Any
 from contextlib import contextmanager
+import logging
 
-from arc.logging import logger
 import ujson
+
+logger = logging.getLogger("arc_logger")
 
 
 def resolve(path: str) -> str:

@@ -1,15 +1,17 @@
 import os
 from typing import Any, Optional
 import hashlib
+import logging
 
 import yaml
 from arc.utils import timer
-from arc.logging import logger
 from pydantic import BaseModel
 
 from .types import DirectorySchema, QuickLaunchEntry
 from . import util
 from .types import OpenContext
+
+logger = logging.getLogger("arc_logger")
 
 
 CONFIG_FILE = os.getenv("VENTURE_CONFIG") or util.resolve("~/.config/venture.yaml")

@@ -1,17 +1,21 @@
-from __future__ import annotations
+# from __future__ import annotations
 import time
 import subprocess
 import os
 from typing import Any
+from typing import Annotated
+import logging
+
 import yaml
-from arc import CLI, ExecutionError, ParsingMethod as pm
+from arc import CLI, errors
+from arc.types import Meta
 from arc.color import fg, effects
 from arc.utils import timer
-from arc.logging import logger
 
 # Initialize the CLI first, so
 # that the arc_logger gets properly setup
 cli = CLI(name="venture", version="2.0.1")
+logger = logging.getLogger("arc_logger")
 
 # pylint: disable=wrong-import-position
 from .browse_list import BrowseList, BrowseItem
@@ -34,7 +38,7 @@ def pick(items: T, pick_config: Config, open_context: OpenContext) -> V:
     logger.debug("Time to render: %s", time.time() - start)
     choice = provider.run()
     if not choice:
-        raise ExecutionError("No Valid Option Picked")
+        raise errors.ExecutionError("No Valid Option Picked")
 
     return choice
 
@@ -48,7 +52,7 @@ def execute(path: str, open_context: OpenContext):
 
 
 @timer("Project Loading")
-def get_items() -> dict[str, BrowseItem | dict]:
+def get_items() -> dict[str, BrowseItem]:
     if cache.exists() and config.browse.use_cache:
         items = cache.read()
         if cache.valid():
@@ -63,7 +67,7 @@ def get_items() -> dict[str, BrowseItem | dict]:
     return items
 
 
-@cli.base()
+@cli.default()
 @cli.command()
 def run():
     """Open the venture selection menu"""
@@ -92,7 +96,7 @@ def run():
 def dump(force: bool = False):
     """Dump Default Config to ~/.config/venture.yaml if it does not exist"""
     if config.exists() and not force:
-        raise ExecutionError(
+        raise errors.ExecutionError(
             "Configuration already exists. Run again with --force to overwrite"
         )
     config.write(default=True)
@@ -127,38 +131,38 @@ DOT = "\uf192"
 
 @quicklaunch.subcommand()
 def add(
-    name: str,
-    path: str,
-    icon: str = DOT,
-    tags: str = None,
-    no_default_tags: bool = False,
+    *,
+    name: Annotated[str, Meta(short="n")],
+    path: Annotated[str, Meta(short="p")],
+    icon: Annotated[str, Meta(short="i")] = DOT,
+    tags: Annotated[list[str], Meta(short="t", default=[])],
+    no_default_tags: Annotated[bool, Meta(short="d")] = False,
     icon_only: bool = False,
 ):
     """\
     Add a new quick-launch entry
 
-    Arguments:
-    name=NAME            Display name for the quick-launch entry
-    path=PATH            File path to launch when the entry is picked
-    icon=ICON            Icon to display along with the name, optional
-    tags=TAG1,TAG2       Comma-seperated values to tag the entry with.
-                         Will be displayed along with the name of the
-                         entry. Icon substitution available.
-
-    --no-default-tags    Disable the generation of default tags for this
-                         quick-launch entry
-    --icon-only          Automatic tag-generation will display icon-only rather
-                         than icon + name
+    # Arguments
+    name: Display name for the quick-launch entry
+    path: File path to launch when the entry is picked
+    icon: Icon to display along with the name, optional
+    tags: Comma-seperated values to tag the entry with.
+            Will be displayed along with the name of the
+            entry. Icon substitution available.
+    no-default-tags: Disable the generation of default tags for this
+                     quick-launch entry
+    icon-only: Automatic tag-generation will display icon-only rather
+               than icon + name
     """
 
     if not os.path.exists(util.resolve(path)):
-        raise ExecutionError(
+        raise errors.ExecutionError(
             f"The path {fg.YELLOW}{path}{effects.CLEAR} {fg.RED}doesn't exist"
         )
 
     all_tags = get_tags(
         path,
-        tags.split(",") if tags else [],
+        tags,
         icon_only,
         no_default_tags,
     )
@@ -173,7 +177,7 @@ def add(
     print(f"{fg.GREEN}{name} Added!{effects.CLEAR}")
 
 
-@quicklaunch.subcommand(parsing_method=pm.POSITIONAL)
+@quicklaunch.subcommand()
 def remove(name: str):
     """\
     Remove a quick-launch entry
@@ -181,7 +185,7 @@ def remove(name: str):
     `quicklaunch:remove <NAME>`
     """
     if name not in config.quicklaunch.entries:
-        raise ExecutionError(f"{name} is not a quick-launch entry")
+        raise errors.ExecutionError(f"{name} is not a quick-launch entry")
 
     config.quicklaunch.entries.pop(name)
     config.write()
@@ -190,9 +194,8 @@ def remove(name: str):
 
 @cli.command("cache")
 def cache_command(enable: bool = False, disable: bool = False):
-    """\
-    Interact with the Venture cache. if no arguments are provided,
-    will display the current state of the cache
+    """Interact with the Venture cache.
+    If no arguments are provided, will display the current state of the cache
 
     The cache stores the data generated to display the main listing.
     For most reasonably sized outputs, the cache isn't necessary, but
@@ -200,9 +203,9 @@ def cache_command(enable: bool = False, disable: bool = False):
     you find running refresh to be annoying, try disabling it and review
     your performance.
 
-    Arguments:
-    --enable  enables the cache
-    --disable disables the cache
+    # Arguments
+    enable:  enables the cache
+    disable: disables the cache
     """
     if all((enable, disable)):
         print("Cannot enable and disable the cache at the same time!")
