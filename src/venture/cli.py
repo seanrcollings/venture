@@ -3,19 +3,18 @@ import time
 import subprocess
 import os
 from typing import Any
-from typing import Annotated
-import logging
 
 import yaml
-from arc import CLI, errors
-from arc.types import Meta
+from arc import CLI, errors, Param, logging
 from arc.color import fg, effects
 from arc.utils import timer
 
 # Initialize the CLI first, so
 # that the arc_logger gets properly setup
-cli = CLI(name="venture", version="2.0.1")
-logger = logging.getLogger("arc_logger")
+cli = CLI(name="venture")
+
+logger = logging.getAppLogger("venture")
+logger.setLevel(logging.DEBUG)
 
 # pylint: disable=wrong-import-position
 from .browse_list import BrowseList, BrowseItem
@@ -67,7 +66,6 @@ def get_items() -> dict[str, BrowseItem]:
     return items
 
 
-@cli.default()
 @cli.command()
 def run():
     """Open the venture selection menu"""
@@ -121,9 +119,7 @@ def list_quicklaunch():
 
     print("Quicklaunch Items:")
     for name, values in config.quicklaunch.entries.items():
-        print(
-            f"- {values['icon']}  {name} {fg.BLACK.bright}({values['path']}){effects.CLEAR}"
-        )
+        print(f"- {values['icon']}  {name} {fg.GREY}({values['path']}){effects.CLEAR}")
 
 
 DOT = "\uf192"
@@ -132,11 +128,11 @@ DOT = "\uf192"
 @quicklaunch.subcommand()
 def add(
     *,
-    name: Annotated[str, Meta(short="n")],
-    path: Annotated[str, Meta(short="p")],
-    icon: Annotated[str, Meta(short="i")] = DOT,
-    tags: Annotated[list[str], Meta(short="t", default=[])],
-    no_default_tags: Annotated[bool, Meta(short="d")] = False,
+    name: str = Param(short="n"),
+    path: str = Param(short="p"),
+    icon: str = Param(short="i", default=DOT),
+    tags: list[str] = Param(short="t", default=[]),
+    no_default_tags: bool = Param(short="d"),
     icon_only: bool = False,
 ):
     """\
@@ -241,7 +237,7 @@ def refresh():
     print("Cache Refreshed")
 
 
-@cli.subcommand("update_config")
+@cli.subcommand("update-config")
 def update():
     """Checks if the config file needs to be updated"""
     with open(CONFIG_FILE, "r") as f:

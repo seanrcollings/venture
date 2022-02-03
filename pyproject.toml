@@ -14,7 +14,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.9"
 PyYAML = "^5.4.1"
-arc-cli = "5.0.0b1"
+arc-cli = "6.3.0b3"
 ujson = "^4.0.2"
 pydantic = "^1.8.2"
 
