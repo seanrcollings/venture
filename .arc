@@ -1,2 +1,0 @@
-mode=development
-parse_argument_help=True

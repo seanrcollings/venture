@@ -4,7 +4,6 @@ import hashlib
 import logging
 
 import yaml
-from arc.utils import timer
 from pydantic import BaseModel
 
 from .types import DirectorySchema, QuickLaunchEntry
@@ -57,7 +56,6 @@ class Config(BaseModel):
         return exec_str
 
     @classmethod
-    @timer("Loading Config")
     def from_file(cls, file):
         with open(file) as f:
             contents = f.read()

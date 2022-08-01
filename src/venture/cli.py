@@ -5,16 +5,9 @@ import os
 from typing import Any
 
 import yaml
-from arc import CLI, errors, Param, logging
+import arc
 from arc.color import fg, effects
-from arc.utils import timer
-
-# Initialize the CLI first, so
-# that the arc_logger gets properly setup
-cli = CLI(name="venture")
-
-logger = logging.getAppLogger("venture")
-logger.setLevel(logging.DEBUG)
+from arc.logging import logger
 
 # pylint: disable=wrong-import-position
 from .browse_list import BrowseList, BrowseItem
@@ -37,7 +30,7 @@ def pick(items: T, pick_config: Config, open_context: OpenContext) -> V:
     logger.debug("Time to render: %s", time.time() - start)
     choice = provider.run()
     if not choice:
-        raise errors.ExecutionError("No Valid Option Picked")
+        raise arc.ExecutionError("No Valid Option Picked")
 
     return choice
 
@@ -50,7 +43,6 @@ def execute(path: str, open_context: OpenContext):
         subprocess.run(command, check=True, shell=True)
 
 
-@timer("Project Loading")
 def get_items() -> dict[str, BrowseItem]:
     if cache.exists() and config.browse.use_cache:
         items = cache.read()
@@ -66,7 +58,10 @@ def get_items() -> dict[str, BrowseItem]:
     return items
 
 
-@cli.command()
+cli = arc.namespace(name="venture")
+
+
+@cli.subcommand()
 def run():
     """Open the venture selection menu"""
     items = get_items()
@@ -90,17 +85,17 @@ def run():
         execute(choice, OpenContext.BROWSE)
 
 
-@cli.command()
+@cli.subcommand()
 def dump(force: bool = False):
     """Dump Default Config to ~/.config/venture.yaml if it does not exist"""
     if config.exists() and not force:
-        raise errors.ExecutionError(
+        raise arc.ExecutionError(
             "Configuration already exists. Run again with --force to overwrite"
         )
     config.write(default=True)
 
 
-@cli.command()
+@cli.subcommand()
 def quicklaunch():
     """Open the Quick Launch Menu"""
     choice = pick(config.quicklaunch.entries, config, OpenContext.QUICK_LAUNCH)
@@ -128,11 +123,11 @@ DOT = "\uf192"
 @quicklaunch.subcommand()
 def add(
     *,
-    name: str = Param(short="n"),
-    path: str = Param(short="p"),
-    icon: str = Param(short="i", default=DOT),
-    tags: list[str] = Param(short="t", default=[]),
-    no_default_tags: bool = Param(short="d"),
+    name: str = arc.Option(short="n"),
+    path: str = arc.Option(short="p"),
+    icon: str = arc.Option(short="i", default=DOT),
+    tags: list[str] = arc.Option(short="t", default=[]),
+    no_default_tags: bool = arc.Flag(short="d"),
     icon_only: bool = False,
 ):
     """\
@@ -152,7 +147,7 @@ def add(
     """
 
     if not os.path.exists(util.resolve(path)):
-        raise errors.ExecutionError(
+        raise arc.ExecutionError(
             f"The path {fg.YELLOW}{path}{effects.CLEAR} {fg.RED}doesn't exist"
         )
 
@@ -175,20 +170,16 @@ def add(
 
 @quicklaunch.subcommand()
 def remove(name: str):
-    """\
-    Remove a quick-launch entry
-
-    `quicklaunch:remove <NAME>`
-    """
+    """Remove a quick-launch entry"""
     if name not in config.quicklaunch.entries:
-        raise errors.ExecutionError(f"{name} is not a quick-launch entry")
+        raise arc.ExecutionError(f"{name} is not a quick-launch entry")
 
     config.quicklaunch.entries.pop(name)
     config.write()
     print(f"{fg.GREEN}{name} Removed!{effects.CLEAR}")
 
 
-@cli.command("cache")
+@cli.subcommand("cache")
 def cache_command(enable: bool = False, disable: bool = False):
     """Interact with the Venture cache.
     If no arguments are provided, will display the current state of the cache
