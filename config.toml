@@ -1,0 +1,48 @@
+# A ui provider will recieve the options in their STDIN and should write the user choice to STDOUT (i.e. how rofi behaves)
+[ui]
+exec = "rofi -dmenu -theme venture.rasi -markup-rows"
+seperator = "\n"
+
+[ui.supports]
+pango = true
+
+# Cache settings
+[cache]
+enabled = true
+
+# Each profile defines it's own paths, and configuration. With the default profile serving as a fallback
+[browse.profiles.home]
+exec = "xdg-open {path}"
+paths = [
+	"~/Documents",
+	"~/Downloads/*",
+	"~/Pictures/**/*",
+	"~/Videos/*",
+	"./files/a/*",
+	"./files/b/*",
+]
+
+exclude = ["*.mobi", "*.zip"]
+
+[browse.profiles.home.show]
+fullpath = true
+
+[browse.profiles.code]
+exec = "code -r {path}"
+paths = [
+	"~/sourcecode",
+	"~/sourcecode/school/*"
+]
+
+exclude = ["school"]
+
+
+[quicklaunch]
+exec = "code -r {path}"
+
+
+[[quicklaunch.entries]]
+name = "arc"
+path = "~/sourcecode/arc"
+icon = ":py:"
+tags = [":py:"]
