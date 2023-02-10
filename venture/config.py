@@ -14,6 +14,7 @@ class UiConfig(BaseModel):
     exec: str
     seperator: str = "\n"
     format: str = "{name}"
+    response_format: str | None = None
     supports: UISupportsConfig = UISupportsConfig()
 
 

@@ -39,11 +39,17 @@ def browse_command(
 
     listing = browse.BrowseList(config.browse)
     mapping = {
-        browse.format_option(l, profile, ui): l["path"]
+        browse.format_option(ui.response_format or ui.format, l, ui): l["path"]
         for l in listing.discover(profile)
     }
 
-    choice = ext.run_ui(ui, mapping)
+    lst = (
+        mapping.keys()
+        if ui.response_format is None
+        else (browse.format_option(ui.format, l, ui) for l in listing.discover(profile))
+    )
+
+    choice = ext.run_ui(ui, lst)
     path = mapping.get(choice)
 
     if not path:

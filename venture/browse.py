@@ -114,7 +114,7 @@ class BrowseList:
         return filetype_icon(filetype.lstrip(".")) or default
 
 
-def format_option(option: BrowseOption, profile: ProfileConfig, ui: UiConfig) -> str:
+def format_option(fmt: str, option: BrowseOption, ui: UiConfig) -> str:
     format_args = {
         "name": option["name"],
         "path": str(option["path"]),
@@ -123,4 +123,4 @@ def format_option(option: BrowseOption, profile: ProfileConfig, ui: UiConfig) ->
         else option["icon"].code,
     }
 
-    return ui.format.format(**format_args)
+    return fmt.format(**format_args)
