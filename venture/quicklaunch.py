@@ -13,9 +13,6 @@ def format_option(
     format_args = entry.dict()
 
     format_args["icon"] = iconize(format_args["icon"], colored=ui.supports.pango)
-    tags = ", ".join(
-        iconize(tag, ui.supports.pango) for tag in format_args["tags"] if tag
-    )
-    format_args["tags"] = tags
+    format_args["details"] = iconize(format_args["details"], ui.supports.pango)
 
     return format_string.format(**format_args)

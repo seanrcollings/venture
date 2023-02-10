@@ -56,11 +56,11 @@ class BrowseConfig(BaseModel):
 
 class QuickLaunchEntryConfig(BaseModel):
     name: str
-    path: str | None = None
+    path: str = ""
     exec: str | None = None
     format: str | None = None
     icon: str = ""
-    tags: list[str] = []
+    details: str = ""
 
 
 class QuickLaunchConfig(BaseModel):

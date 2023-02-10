@@ -33,7 +33,7 @@ exclude = ["school"]
 
 [quicklaunch]
 exec = "code -r {path}"
-format = "{icon} {name}\n<span size='smaller' weight='light'>{tags}</span>"
+format = "{icon} {name}\n<span size='smaller' weight='light'>{details}</span>"
 
 [quicklaunch.ui]
 exec = "rofi -dmenu -theme venture.rasi -markup-rows -sep '|' -eh 2"
@@ -46,22 +46,22 @@ pango = true
 name = "arc"
 path = "~/sourcecode/arc"
 icon = ":py:"
-tags = [":py: python"]
+details = ":py: python"
 
 [[quicklaunch.entries]]
 name = "Comic Site"
 path = "~/sourcecode/comic-site"
 icon = "󱗖"
-tags = [":js: javascript", "svelte"]
+details = ":js: javascript, svelte"
 
 [[quicklaunch.entries]]
 name = "Sway"
 path = "~/.config/sway/config"
 icon = "\uF2D2"
-tags = [':config: config']
+details = ":config: config"
 
 [[quicklaunch.entries]]
 name = "Venture"
 path = "~/sourcecode/venture"
 icon = "\uE771"
-tags = [':py: python', "rofi"]
+details = ":py: python"
