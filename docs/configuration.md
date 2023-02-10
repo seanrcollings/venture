@@ -1,131 +1,98 @@
-# Configuration
-Venture's config defaults to `~/.config/venture.yaml`, but this can be overridden with the `VENTURE_CONFIG` environment variable.
+## Configuration
+The configuration file is located at `~/.config/venture.toml` by default, but can be specified using the `--config` argument
 
-## Global Configuration
-- `ui: str` - What venture should use to render the UI selection menu. Currently, supports `dmenu`, `rofi`, and `wofi`, but support for other UI providers is planned!
-- `args: dict` - A dictionary of values to get passed to the UI Provider of choice as arguments. For example, if your UI of choice was `rofi`, you could provide a theme like this:
-    ```YAML
-    args:
-        theme: "~/.config/rofi/venture.rasi"
-    ```
-- `exec: str` - A command to execute when the user selects an item. Recieves `path` as a token which is the absolute path to what the user selected. To open VS Code with the file / directory on selection, you would set it it `code {path}`.
-- `color_icons: bool` - Whether or not to display the icons in color or in plain white
+### UI
+Configuration for how to render out the choices
 
-## Browse Mode
-- `entries: list[str | dict]` - List of entrie points that Venture uses to generate the browse menu items. Check [modes.md](./modes.md) for a deep dive on the possible syntax here.
-- `exec: str` - Same as the global config, if this isn't present, browse will default to the global value
-- `include_parent_folder: bool` - Determines whether or not a sub-folder is considered an entry in the. browse list. Consider the following `entries` configuration
-    ```YAML
-    browse:
-      entires:
-        - base: /home/sean/sourcecode
-          subs:
-          - rust
-    ```
-    if `include_parent_folder` is false, then the all of the contents of `/home/sean/sourcecode` would be the browse list, along with the contents of `/home/sean/sourcecode/rust`, but not `rust` itself. If `include_parent_folder` is true, then it would be included
-- `show_files: bool` - Whether or not to display files
-- `show_hidden: bool` - Whether or not to displa hidden files (those beginning with a '.')
-- `show_icons: bool`  - Whether or not to display icons based on filetype
-- `show_quicklaunch: bool` - Wether or not to add a button to navigate to the Quick Launch mode to the top of the browse menu.
-- `use_cache: bool` - Cache the generated menu items for quicker subsequent access. However, when caching, your output will not always be 1-to-1 with the filesystem. I would recommend trying it out with it both on and off and see how it feels. The cache can be forced to update with `venture cache:refresh`
+- `ui.exec` - Command to execute to display the UI. Will receive the options in their STDIN and should write the user choice to STDOUT (i.e. how rofi behaves). Required
+- `ui.seperator` - Character(s) that separate each choice in STDIN. Defaults to newline.
+- `ui.format` - Format string that defines how each entry should be sent to the UI
+- `ui.response_format` - The format that the response from the UI will be in. Will receive the same tokens as format above. If it is not provided, `ui.format` will be assumed as the default.
 
-## Quick Launch Mode
-- `entires: dict[str, dict[str, str]]` - The items to render in quick-launch mode. You generally don't have to worry about editing this yourself, because `venture quicklaunch:add` will generate the correct syntax for you.
-    ### Example
-    ```YAML
-    ARC: # Name displayed in the menu
-      icon: "\uF192" # Icon displayed next to the name (Optional)
-      path: /home/sean/sourcecode/arc # Path to execute when selected
-      tags:
-          - "|py|" # searchable-tags to render for each item. Icon-strings valid here
-    ```
-- `exec: str` - Same as the global config, if this isn't present, quick-launch will default to the global value
-- `show_filepath: bool` - Whether or not to display the filepath of each entry along with the tags.
+#### Optional UI Features
+Extensions for particular UI components
+- `ui.supports.pango` - The interface being rendered supports pango markup. If enabled, icons can be colored.
 
-# Examples
-## Default Configuration
-```YAML
-ui: rofi
-args: {}
-exec: code -r {path}
-color_icons: true
-browse:
-  entries:
-  - '~'
-  exec: ''
-  include_parent_folder: true
-  show_files: true
-  show_hidden: false
-  show_icons: true
-  show_quicklaunch: false
-  use_cache: true
-quicklaunch:
-  entries: {}
-  exec: ''
-  show_filepath: false
-```
+### Browse
+Configurations for the browse mode
 
-## Customized Configuration
-```YAML
-ui: rofi
-exec: code -r {path}
-args:
-  theme: /home/sean/.config/rofi/venture.rasi
-browse:
-  entries:
-    - base: /home/sean/sourcecode
-      subs:
-        - rust
-        - crystal
-        - ComputerScience/*
-        - scripts
-        - atomicjolt
-        - python
-  exec: ""
-  include_parent_folder: false
-  show_files: true
-  show_hidden: false
-  show_icons: true
-  show_quicklaunch: false
-  use_cache: false
-quicklaunch:
-  entries:
-    ARC:
-      icon: "\uF192"
-      path: /home/sean/sourcecode/arc
-      tags:
-        - "|py|"
-    Fish:
-      icon: "\uF8DC"
-      path: ~/.config/fish/config.fish
-      tags:
-        - "|fish|"
-        - "|config|"
-    Mugenmonkey:
-      icon: "\uF737"
-      path: ~/mugenmonkey-rails
-      tags:
-        - "|rb|"
-        - "|jsx|"
-        - "|ts|"
-    Qualtrics:
-      icon: "\uFAB4"
-      path: ~/sourcecode/atomicjolt/qualtrics/
-      tags:
-        - "|rb|"
-        - "|js|"
-        - "|ts|"
-    Sway:
-      icon: "\uF2D2"
-      path: ~/.config/sway/config
-      tags:
-        - "|config|"
-    Venture:
-      icon: "\uE771"
-      path: ~/sourcecode/venture
-      tags:
-        - "|py|"
-        - rofi
-  exec: ""
-  show_filepath: false
+#### Profiles
+You define multiple profiles for browse mode that each define their own configuration values. The profile to use is then picked when executing the program.
+
+- `browse.ui` - Default UI for every profile. Reference UI above for options
+- `browse.profiles.<name>.ui.format` - Receives 3 arguments:
+	- **name** - A unique name for the option derived from the path of the item
+	- **path** - The full path of the option
+	- **icon** - The icon detected for the filetype
+- `browse.profiles.<name>.exec` - Program to execute with user choice. Should be a format string like this: `xdg-open {path}`
+- `browse.profiles.<name>.paths` - Array of paths to search through for options
+- `browse.profiles.<name>.exclude` - Array of regexes (or globs?) that will filter the list of items discovered from the paths above.
+- `browse.profiles.<name>.ui` -  UI configuration for this profile. Reference UI above for options
+- `browse.profiles.<name>.show.hidden` - Display hidden files. Defaults to False
+- `browse.profiles.<name>.show.files` - Display Files. Defaults to True
+- `browse.profiles.<name>.show.directories` - Display Directories. Defaults to True
+
+### QuickLaunch
+Settings for the quicklaunch mode
+
+- `quicklaunch.exec` - Global exec command for all quicklaunch entries that do not provide their own one
+- `quicklaunch.format` - Format for each entry. It will receive 4 arguments:
+	- **name** - Entry name
+	- **path** - Entry path
+	- **icon** - Entry icon
+	- **details** - Entry Details
+- `quicklaunch.ui` - Default UI for every profile. Reference UI above for options
+
+#### Quicklaunch Entries
+An array of items to render for the quicklaunch
+- `quicklaunch.entires[].name` - Human readable name for the item
+- `quicklaunch.entires[].exec` - Command to execute when this option is picked. This or path (or both) must be provided
+- `quicklaunch.entires[].path` - Path to the item
+- `quicklaunch.entires[].icon` - Optional icon to display alongside the name of the item
+- `quicklaunch.entires[].details` - String of additional details that can be rendered with your options
+- - `quicklaunch.entires[].format` - Format specifier for this specific entry. same arguments as above
+
+### Configuration Example
+```toml
+[browse.ui]
+exec = "rofi -dmenu -theme venture.rasi -markup-rows"
+format = "{icon} {name}"
+supports.pango = true
+
+[browse.profiles.code]
+exec = "code -r {path}"
+paths = [
+	"~/sourcecode",
+	"~/sourcecode/school/*"
+]
+
+exclude = ["school"]
+
+[quicklaunch]
+exec = "code -r {path}"
+
+[quicklaunch.ui]
+exec = "rofi -dmenu -theme venture.rasi -markup-rows"
+format = "{icon} {name}"
+seperator = "|"
+supports.pango = true
+
+[[quicklaunch.entries]]
+name = "arc"
+path = "~/sourcecode/arc"
+icon = ":py:"
+details = ":py: python"
+
+[[quicklaunch.entries]]
+name = "Sway"
+path = "~/.config/sway/config"
+icon = "\uF2D2"
+details = ":config: config"
+
+[[quicklaunch.entries]]
+name = "Venture"
+path = "~/sourcecode/venture"
+icon = "\uE771"
+details = ":py: python"
+
 ```
