@@ -123,4 +123,4 @@ def format_option(option: BrowseOption, profile: ProfileConfig, ui: UiConfig) ->
         else option["icon"].code,
     }
 
-    return profile.format.format(**format_args)
+    return ui.format.format(**format_args)

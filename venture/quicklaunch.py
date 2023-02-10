@@ -9,7 +9,7 @@ def format_option(
     entry: QuickLaunchEntryConfig,
 ):
     ui = ql_config.ui
-    format_string = entry.format or ql_config.format
+    format_string = entry.format or ql_config.ui.format
     format_args = entry.dict()
 
     format_args["icon"] = iconize(format_args["icon"], colored=ui.supports.pango)

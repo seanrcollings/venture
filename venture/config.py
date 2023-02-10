@@ -13,6 +13,7 @@ class UISupportsConfig(BaseModel):
 class UiConfig(BaseModel):
     exec: str
     seperator: str = "\n"
+    format: str = "{name}"
     supports: UISupportsConfig = UISupportsConfig()
 
 
@@ -27,7 +28,6 @@ class ProfileShowConfig(BaseModel):
 
 
 class ProfileConfig(BaseModel):
-    format: str = "{icon} {name}"
     paths: list[Path]
     exec: str
     exclude: list[str] = []
@@ -67,7 +67,6 @@ class QuickLaunchConfig(BaseModel):
     exec: str | None = None
     entries: list[QuickLaunchEntryConfig]
     ui: UiConfig
-    format: str = "{name}"
 
     @validator("entries")
     def check_exec_existance(cls, value: list[QuickLaunchEntryConfig], values):

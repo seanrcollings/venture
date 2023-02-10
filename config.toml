@@ -1,13 +1,10 @@
 [cache]
 enabled = true
 
-[browse]
-
 [browse.ui]
 exec = "rofi -dmenu -theme venture.rasi -markup-rows"
-
-[browse.ui.supports]
-pango = true
+format = "{icon} {name}"
+supports.pango = true
 
 [browse.profiles.home]
 exec = "xdg-open {path}"
@@ -33,14 +30,12 @@ exclude = ["school"]
 
 [quicklaunch]
 exec = "code -r {path}"
-format = "{icon} {name}\n<span size='smaller' weight='light'>{details}</span>"
 
 [quicklaunch.ui]
 exec = "rofi -dmenu -theme venture.rasi -markup-rows -sep '|' -eh 2"
+format = "{icon} {name}\n<span size='smaller' weight='light'>{details}</span>"
 seperator = "|"
-
-[quicklaunch.ui.supports]
-pango = true
+supports.pango = true
 
 [[quicklaunch.entries]]
 name = "arc"
