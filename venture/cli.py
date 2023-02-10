@@ -1,7 +1,7 @@
+from datetime import datetime
 import typing as t
 from pathlib import Path
 import arc
-from rich import print
 from xdg import xdg_config_home
 
 from venture import browse, ext, quicklaunch
@@ -26,9 +26,11 @@ class SharedArgs:
 @cli.subcommand(("browse", "b"))
 def browse_command(
     args: SharedArgs,
+    ctx: arc.Context,
     profile_name: str = arc.Option(name="profile", short="p", default="default"),
 ) -> None:
     """Launch a particular browse profile"""
+    start = datetime.now()
     config = Config.load(args.config_path)
     profile = config.browse.profiles.get(profile_name)
     if not profile:
@@ -49,6 +51,7 @@ def browse_command(
         else (browse.format_option(ui.format, l, ui) for l in listing.discover(profile))
     )
 
+    ctx.logger.debug(f"Time to render: {(datetime.now() - start).total_seconds()}")
     choice = ext.run_ui(ui, lst)
     path = mapping.get(choice)
 
@@ -56,11 +59,14 @@ def browse_command(
         arc.err(f"Provided input is invalid: {choice!r}")
         arc.exit(1)
 
-    ext.run_exec(profile.exec, path)
+    if ctx.config.environment == "production":
+        ext.run_exec(profile.exec, path)
+    else:
+        print(profile.exec.format(path=path))
 
 
 @cli.subcommand(("quicklaunch", "q"))
-def quicklaunch_command(args: SharedArgs) -> None:
+def quicklaunch_command(args: SharedArgs, ctx: arc.Context) -> None:
     config = Config.load(args.config_path)
     ql_config = config.quicklaunch
     mapping = {
@@ -76,4 +82,8 @@ def quicklaunch_command(args: SharedArgs) -> None:
         arc.err(f"Provided input is invalid: {choice!r}")
         arc.exit(1)
 
-    ext.run_exec(entry.exec or ql_config.exec, entry.path)
+    exec_str = entry.exec or ql_config.exec
+    if ctx.config.environment == "production":
+        ext.run_exec(exec_str, entry.path)
+    else:
+        print(exec_str.format(path=entry.path))

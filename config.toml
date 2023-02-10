@@ -1,6 +1,3 @@
-[cache]
-enabled = true
-
 [browse.ui]
 exec = "rofi -dmenu -theme venture.rasi -markup-rows"
 format = "{icon} {name}"
@@ -13,20 +10,29 @@ paths = [
 	"~/Downloads/*",
 	"~/Pictures/**/*",
 	"~/Videos/*",
-	"./files/a/*",
-	"./files/b/*",
 ]
 
 exclude = ["*.mobi", "*.zip", "*/Screenshots/*"]
+show.directories = false
 
 [browse.profiles.code]
 exec = "code -r {path}"
 paths = [
-	"~/sourcecode",
-	"~/sourcecode/school/*"
+	"~/sourcecode/*",
+	"~/sourcecode/school/**/*",
+	"~/sourcecode/atomicjolt/*",
+	"~/sourcecode/atomicjolt/otc/*"
 ]
 
-exclude = ["school"]
+exclude = ["school", "*.zip", "*otc"]
+show.files = false
+
+
+[browse.profiles.stress]
+exec = "code -r {path}"
+paths = ["./files/**/*"]
+
+show.files = false
 
 [quicklaunch]
 exec = "code -r {path}"

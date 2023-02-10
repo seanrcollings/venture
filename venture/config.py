@@ -26,6 +26,7 @@ class ProfileShowConfig(BaseModel):
     hidden: bool = False
     files: bool = True
     directories: bool = True
+    quicklaunch: bool = True
 
 
 class ProfileConfig(BaseModel):
