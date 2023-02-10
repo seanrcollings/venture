@@ -6,8 +6,9 @@ from pathlib import Path
 import functools
 
 from arc.color import fg, colorize
+from venture import pango
 
-from venture.config import BrowseConfig, ProfileConfig
+from venture.config import BrowseConfig, Config, ProfileConfig, UiConfig
 from .icons import default, filetype_icon, Icon
 
 GLOB = "/*"
@@ -36,11 +37,7 @@ class BrowseList:
             path = path.expanduser().resolve()
             for realized_path_str in glob.glob(str(path)):
                 realized_path = Path(realized_path_str)
-                parts = (
-                    len(realized_path.parts)
-                    if profile.show.fullpath
-                    else self.get_globbed_count(path, realized_path)
-                )
+                parts = self.get_globbed_count(path, realized_path)
                 entry = self.create_entry(profile, realized_path, parts)
                 if entry:
                     yield entry
@@ -115,3 +112,15 @@ class BrowseList:
     def get_icon(filetype: str) -> Icon:
         """Returns the icon associated with a specific file type"""
         return filetype_icon(filetype.lstrip(".")) or default
+
+
+def format_option(option: BrowseOption, profile: ProfileConfig, ui: UiConfig) -> str:
+    format_args = {
+        "name": option["name"],
+        "path": str(option["path"]),
+        "icon": pango.span(option["icon"].code, color=option["icon"].color)
+        if ui.supports.pango
+        else option["icon"].code,
+    }
+
+    return profile.format.format(**format_args)

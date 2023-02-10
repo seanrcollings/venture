@@ -1,16 +1,14 @@
-# A ui provider will recieve the options in their STDIN and should write the user choice to STDOUT (i.e. how rofi behaves)
-[ui]
-exec = "rofi -dmenu -theme venture.rasi -markup-rows"
-seperator = "\n"
-
-[ui.supports]
-pango = true
-
-# Cache settings
 [cache]
 enabled = true
 
-# Each profile defines it's own paths, and configuration. With the default profile serving as a fallback
+[browse]
+
+[browse.ui]
+exec = "rofi -dmenu -theme venture.rasi -markup-rows"
+
+[browse.ui.supports]
+pango = true
+
 [browse.profiles.home]
 exec = "xdg-open {path}"
 paths = [
@@ -22,10 +20,7 @@ paths = [
 	"./files/b/*",
 ]
 
-exclude = ["*.mobi", "*.zip"]
-
-[browse.profiles.home.show]
-fullpath = true
+exclude = ["*.mobi", "*.zip", "*/Screenshots/*"]
 
 [browse.profiles.code]
 exec = "code -r {path}"
@@ -36,13 +31,37 @@ paths = [
 
 exclude = ["school"]
 
-
 [quicklaunch]
 exec = "code -r {path}"
+format = "{icon} {name}\n<span size='smaller' weight='light'>{tags}</span>"
 
+[quicklaunch.ui]
+exec = "rofi -dmenu -theme venture.rasi -markup-rows -sep '|' -eh 2"
+seperator = "|"
+
+[quicklaunch.ui.supports]
+pango = true
 
 [[quicklaunch.entries]]
 name = "arc"
 path = "~/sourcecode/arc"
 icon = ":py:"
-tags = [":py:"]
+tags = [":py: python"]
+
+[[quicklaunch.entries]]
+name = "Comic Site"
+path = "~/sourcecode/comic-site"
+icon = "󱗖"
+tags = [":js: javascript", "svelte"]
+
+[[quicklaunch.entries]]
+name = "Sway"
+path = "~/.config/sway/config"
+icon = "\uF2D2"
+tags = [':config: config']
+
+[[quicklaunch.entries]]
+name = "Venture"
+path = "~/sourcecode/venture"
+icon = "\uE771"
+tags = [':py: python', "rofi"]

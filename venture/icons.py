@@ -40,22 +40,22 @@ def iconize(string: str, colored: bool = False) -> str:
 
         replaces = re.sub(f":{filetype}:", formatted + " ", replaces)
 
-    long_name_regex = re.compile(r"\|([\w-]*)\|")
-    filetypes = long_name_regex.findall(string)
+    # long_name_regex = re.compile(r"\|([\w-]*)\|")
+    # filetypes = long_name_regex.findall(string)
 
-    for filetype in filetypes:
-        icon = filetype_icon(filetype)
-        long_name = file_icon_map.get(filetype)
-        if icon and long_name:
-            formatted = (
-                (util.pango_span(icon.code, color=icon.color) if colored else icon.code)
-                + " "
-                + long_name
-            )
-        else:
-            formatted = filetype
+    # for filetype in filetypes:
+    #     icon = filetype_icon(filetype)
+    #     long_name = file_icon_map.get(filetype)
+    #     if icon and long_name:
+    #         formatted = (
+    #             (util.pango_span(icon.code, color=icon.color) if colored else icon.code)
+    #             + " "
+    #             + long_name
+    #         )
+    #     else:
+    #         formatted = filetype
 
-        replaces = re.sub(fr"\|{filetype}\|", formatted, replaces)
+    #     replaces = re.sub(fr"\|{filetype}\|", formatted, replaces)
 
     return replaces
 

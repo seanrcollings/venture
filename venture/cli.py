@@ -1,72 +1,73 @@
+import typing as t
 from pathlib import Path
-import subprocess
 import arc
 from rich import print
 from xdg import xdg_config_home
 
-from venture.browse import BrowseOption, BrowseList
-from venture.config import Config, ProfileConfig
-from venture import pango
-
-arc.configure(environment="development")
-
-cli = arc.namespace("venture")
+from venture import browse, ext, quicklaunch
+from venture.config import Config, UiConfig
 
 DEFAULT_CONFIG_FILE = xdg_config_home() / "venture.toml"
-# CONFIG_FILE = Path("config.toml")
+
+arc.configure(environment="development")
+cli = arc.namespace("venture")
 
 
-@cli.subcommand()
-def browse(
-    profile_name: str = arc.Option(name="profile", short="p", default="default"),
+@arc.group
+class SharedArgs:
     config_path: Path = arc.Option(
-        name="config", short="c", default=DEFAULT_CONFIG_FILE
-    ),
-):
-    config = Config.load(config_path)
+        name="config",
+        short="c",
+        default=DEFAULT_CONFIG_FILE,
+        desc="Path to the config file to load",
+    )
+
+
+@cli.subcommand(("browse", "b"))
+def browse_command(
+    args: SharedArgs,
+    profile_name: str = arc.Option(name="profile", short="p", default="default"),
+) -> None:
+    """Launch a particular browse profile"""
+    config = Config.load(args.config_path)
     profile = config.browse.profiles.get(profile_name)
     if not profile:
         arc.err(f"No profile with name {profile_name!r} found in config")
         arc.exit(1)
 
-    listing = BrowseList(config.browse)
+    ui = t.cast(UiConfig, profile.ui or config.browse.ui)
+
+    listing = browse.BrowseList(config.browse)
     mapping = {
-        format_option(l, config, profile): l["path"] for l in listing.discover(profile)
+        browse.format_option(l, profile, ui): l["path"]
+        for l in listing.discover(profile)
     }
 
-    proc = subprocess.run(
-        config.ui.exec,
-        input="\n".join(mapping).encode("utf-8"),
-        check=False,
-        shell=True,
-        capture_output=True,
-    )
-
-    choice = proc.stdout.decode("utf-8").strip()
+    choice = ext.run_ui(ui, mapping)
     path = mapping.get(choice)
 
     if not path:
         arc.err(f"Provided input is invalid: {choice!r}")
         arc.exit(1)
 
-    subprocess.Popen(
-        profile.exec.format(path=path),
-        shell=True,
-        start_new_session=True,
-    )
+    ext.run_exec(profile.exec, path)
 
 
-def format_option(
-    option: BrowseOption,
-    config: Config,
-    profile: ProfileConfig,
-) -> str:
-    name = option["name"]
-    icon = option["icon"]
-    if config.ui.supports.pango and profile.show.icons:
-        return f"{pango.span(icon.code, color=icon.color)} {name}"
+@cli.subcommand(("quicklaunch", "q"))
+def quicklaunch_command(args: SharedArgs) -> None:
+    config = Config.load(args.config_path)
+    ql_config = config.quicklaunch
+    mapping = {
+        quicklaunch.format_option(config, ql_config, entry): entry
+        for entry in ql_config.entries
+    }
 
-    if profile.show.icons:
-        return f"{icon.code} {name}"
+    choice = ext.run_ui(ql_config.ui, mapping)
 
-    return name
+    entry = mapping.get(choice)
+
+    if not entry:
+        arc.err(f"Provided input is invalid: {choice!r}")
+        arc.exit(1)
+
+    ext.run_exec(entry.exec or ql_config.exec, entry.path)
