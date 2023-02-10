@@ -9,7 +9,7 @@ from venture.config import Config, UiConfig
 
 DEFAULT_CONFIG_FILE = xdg_config_home() / "venture.toml"
 
-arc.configure(environment="development")
+# arc.configure(environment="development")
 cli = arc.namespace("venture")
 
 
