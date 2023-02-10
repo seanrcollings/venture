@@ -1,4 +1,5 @@
 from datetime import datetime
+import pkg_resources
 import typing as t
 from pathlib import Path
 import arc
@@ -9,8 +10,12 @@ from venture.config import Config, UiConfig
 
 DEFAULT_CONFIG_FILE = xdg_config_home() / "venture.toml"
 
-# arc.configure(environment="development")
-cli = arc.namespace("venture")
+arc.configure(version=pkg_resources.get_distribution("venture").version)
+
+
+@arc.command("venture")
+def cli():
+    ...
 
 
 @arc.group
