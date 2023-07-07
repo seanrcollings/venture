@@ -1,5 +1,5 @@
 from datetime import datetime
-import pkg_resources
+from importlib import metadata
 import typing as t
 from pathlib import Path
 import arc
@@ -10,12 +10,9 @@ from venture.config import Config, UiConfig
 
 DEFAULT_CONFIG_FILE = xdg_config_home() / "venture.toml"
 
-arc.configure(version=pkg_resources.get_distribution("venture").version)
+arc.configure(version=metadata.version("venture"))
 
-
-@arc.command("venture")
-def cli():
-    ...
+cli = arc.namespace("venture")
 
 
 @arc.group
@@ -28,7 +25,7 @@ class SharedArgs:
     )
 
 
-@cli.subcommand(("browse", "b"))
+@cli.subcommand("browse", "b")
 def browse_command(
     args: SharedArgs,
     ctx: arc.Context,
@@ -70,7 +67,7 @@ def browse_command(
         print(profile.exec.format(path=path))
 
 
-@cli.subcommand(("quicklaunch", "q"))
+@cli.subcommand("quicklaunch", "q")
 def quicklaunch_command(args: SharedArgs, ctx: arc.Context) -> None:
     config = Config.load(args.config_path)
     ql_config = config.quicklaunch
