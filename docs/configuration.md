@@ -50,7 +50,7 @@ An array of items to render for the quicklaunch
 - `quicklaunch.entires[].path` - Path to the item
 - `quicklaunch.entires[].icon` - Optional icon to display alongside the name of the item
 - `quicklaunch.entires[].details` - String of additional details that can be rendered with your options
-- - `quicklaunch.entires[].format` - Format specifier for this specific entry. same arguments as above
+- `quicklaunch.entires[].format` - Format specifier for this specific entry. same arguments as above
 
 ### Configuration Example
 ```toml
